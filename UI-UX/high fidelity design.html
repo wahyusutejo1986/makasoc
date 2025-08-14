@@ -1,0 +1,1989 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Super Blue Team - High-Fidelity Design System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: #E2E8F0;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 3rem;
+            padding: 2rem 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.3);
+        }
+
+        .logo-text {
+            font-size: 2rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #3B82F6 0%, #10B981 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: #94A3B8;
+            font-weight: 400;
+        }
+
+        .nav-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 3rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-tab {
+            padding: 0.75rem 1.5rem;
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #CBD5E1;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        .nav-tab:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3B82F6;
+            color: #3B82F6;
+        }
+
+        .nav-tab.active {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            border-color: #3B82F6;
+            color: white;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .section {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(10px);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #F1F5F9;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .color-palette {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .color-card {
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+
+        .color-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .color-swatch {
+            width: 80px;
+            height: 80px;
+            border-radius: 12px;
+            margin: 0 auto 1rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3);
+        }
+
+        .color-name {
+            font-weight: 600;
+            color: #F1F5F9;
+            margin-bottom: 0.5rem;
+        }
+
+        .color-hex {
+            font-family: 'Courier New', monospace;
+            color: #94A3B8;
+            font-size: 0.9rem;
+        }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .component-card {
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .component-card:hover {
+            border-color: #3B82F6;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+        }
+
+        .component-title {
+            font-weight: 600;
+            color: #F1F5F9;
+            margin-bottom: 1rem;
+        }
+
+        .component-demo {
+            margin-bottom: 1rem;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: none;
+            font-family: inherit;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(59, 130, 246, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(51, 65, 85, 0.8);
+            color: #CBD5E1;
+            border: 1px solid #475569;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: #3B82F6;
+            color: #3B82F6;
+        }
+
+        .btn-ai {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 4px 16px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-ai:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 24px rgba(16, 185, 129, 0.4);
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 4px;
+            overflow: hidden;
+            margin: 1rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3B82F6 0%, #10B981 100%);
+            border-radius: 4px;
+            transition: width 0.3s ease;
+        }
+
+        .card {
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: #3B82F6;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-exclusive {
+            background: linear-gradient(135deg, #7C3AED 0%, #5B21B6 100%);
+            color: white;
+        }
+
+        .badge-ai {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+        }
+
+        .screen-mockup {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            line-height: 1.8;
+            color: #94A3B8;
+        }
+
+        .mockup-layer {
+            margin-left: 1rem;
+            border-left: 2px solid #475569;
+            padding-left: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .mockup-component {
+            color: #3B82F6;
+            font-weight: 600;
+        }
+
+        .mockup-text {
+            color: #10B981;
+        }
+
+        .mockup-action {
+            color: #F59E0B;
+        }
+
+        .export-section {
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid #10B981;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .export-title {
+            color: #10B981;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .export-list {
+            list-style: none;
+            color: #CBD5E1;
+        }
+
+        .export-list li {
+            margin-bottom: 0.5rem;
+            padding-left: 1.5rem;
+            position: relative;
+        }
+
+        .export-list li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #10B981;
+            font-weight: bold;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .nav-tabs {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .component-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .color-palette {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+        }
+
+        /* Animation keyframes */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        /* Enhanced Icon System */
+        .icon-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .icon-item {
+            text-align: center;
+            padding: 1rem;
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .icon-item:hover {
+            border-color: #3B82F6;
+            transform: translateY(-2px);
+        }
+
+        .icon-svg {
+            width: 32px;
+            height: 32px;
+            margin: 0 auto 0.5rem;
+            display: block;
+        }
+
+        /* Chart Styles */
+        .chart-container {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+        }
+
+        .chart-title {
+            color: #F1F5F9;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .radar-chart {
+            width: 200px;
+            height: 200px;
+            margin: 0 auto;
+        }
+
+        .donut-chart {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto;
+        }
+
+        .bar-chart {
+            display: flex;
+            align-items: end;
+            gap: 0.5rem;
+            height: 100px;
+            margin: 1rem 0;
+        }
+
+        .bar {
+            background: linear-gradient(to top, #3B82F6, #1D4ED8);
+            border-radius: 4px 4px 0 0;
+            min-width: 20px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .bar:hover {
+            background: linear-gradient(to top, #10B981, #059669);
+            transform: scaleY(1.1);
+        }
+
+        .bar-label {
+            position: absolute;
+            bottom: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.7rem;
+            color: #94A3B8;
+        }
+
+        /* Dashboard Widgets */
+        .widget-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .widget {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .widget:hover {
+            border-color: #3B82F6;
+            box-shadow: 0 8px 32px rgba(59, 130, 246, 0.1);
+        }
+
+        .widget-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .widget-title {
+            color: #F1F5F9;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .status-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-online { background: #10B981; }
+        .status-warning { background: #F59E0B; }
+        .status-error { background: #EF4444; }
+        .status-offline { background: #6B7280; }
+
+        /* Terminal Component */
+        .terminal {
+            background: #000;
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            color: #10B981;
+            margin: 1rem 0;
+        }
+
+        .terminal-header {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #334155;
+        }
+
+        .terminal-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .dot-red { background: #EF4444; }
+        .dot-yellow { background: #F59E0B; }
+        .dot-green { background: #10B981; }
+
+        .terminal-line {
+            margin-bottom: 0.5rem;
+        }
+
+        .terminal-prompt {
+            color: #3B82F6;
+        }
+
+        .terminal-command {
+            color: #F1F5F9;
+        }
+
+        .terminal-output {
+            color: #94A3B8;
+        }
+
+        /* Notification System */
+        .notification {
+            display: flex;
+            align-items: start;
+            gap: 1rem;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            border-left: 4px solid;
+        }
+
+        .notification-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-left-color: #10B981;
+        }
+
+        .notification-warning {
+            background: rgba(245, 158, 11, 0.1);
+            border-left-color: #F59E0B;
+        }
+
+        .notification-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-left-color: #EF4444;
+        }
+
+        .notification-info {
+            background: rgba(59, 130, 246, 0.1);
+            border-left-color: #3B82F6;
+        }
+
+        /* Data Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .data-table th {
+            background: rgba(51, 65, 85, 0.8);
+            color: #F1F5F9;
+            font-weight: 600;
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #475569;
+        }
+
+        .data-table td {
+            padding: 1rem;
+            color: #CBD5E1;
+            border-bottom: 1px solid #334155;
+        }
+
+        .data-table tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        /* Timeline Component */
+        .timeline {
+            position: relative;
+            padding-left: 2rem;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 1rem;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, #3B82F6, #10B981);
+        }
+
+        .timeline-item {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -1.5rem;
+            top: 0.5rem;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3B82F6;
+            border: 3px solid #0F172A;
+        }
+
+        .timeline-item.completed::before {
+            background: #10B981;
+        }
+
+        .timeline-item.current::before {
+            background: #F59E0B;
+            animation: pulse 2s infinite;
+        }
+
+        /* Advanced Form Elements */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            color: #F1F5F9;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            color: #F1F5F9;
+            font-family: inherit;
+            transition: all 0.3s ease;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #3B82F6;
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e");
+            background-position: right 0.5rem center;
+            background-repeat: no-repeat;
+            background-size: 1.5em 1.5em;
+            padding-right: 2.5rem;
+        }
+
+        /* Metric Cards */
+        .metric-card {
+            text-align: center;
+            padding: 1.5rem;
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .metric-card:hover {
+            border-color: #3B82F6;
+            transform: translateY(-2px);
+        }
+
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #F1F5F9;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-label {
+            color: #94A3B8;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .metric-trend {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.25rem;
+            margin-top: 0.5rem;
+            font-size: 0.8rem;
+        }
+
+        .trend-up { color: #10B981; }
+        .trend-down { color: #EF4444; }
+
+        /* Lab Environment Status */
+        .lab-status {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin: 1rem 0;
+        }
+
+        .lab-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem;
+            background: rgba(51, 65, 85, 0.3);
+            border-radius: 8px;
+        }
+
+        /* Threat Level Indicators */
+        .threat-level {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.25rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .threat-low {
+            background: rgba(16, 185, 129, 0.2);
+            color: #10B981;
+        }
+
+        .threat-medium {
+            background: rgba(245, 158, 11, 0.2);
+            color: #F59E0B;
+        }
+
+        .threat-high {
+            background: rgba(239, 68, 68, 0.2);
+            color: #EF4444;
+        }
+
+        .threat-critical {
+            background: rgba(124, 58, 237, 0.2);
+            color: #7C3AED;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="white" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <h1 class="logo-text">Super Blue Team</h1>
+            </div>
+            <p class="subtitle">High-Fidelity Design System • Powered by AI • Invite-Only SOC Mastery Platform</p>
+        </header>
+
+        <nav class="nav-tabs">
+            <div class="nav-tab active" onclick="showSection('style-guide')">Style Guide</div>
+            <div class="nav-tab" onclick="showSection('screens')">Screen Designs</div>
+            <div class="nav-tab" onclick="showSection('components')">Components</div>
+            <div class="nav-tab" onclick="showSection('interactions')">Interactions</div>
+            <div class="nav-tab" onclick="showSection('accessibility')">Accessibility</div>
+            <div class="nav-tab" onclick="showSection('export')">Export Guide</div>
+        </nav>
+
+        <!-- Style Guide Section -->
+        <div id="style-guide" class="section fade-in">
+            <h2 class="section-title">
+                <div class="section-icon">🎨</div>
+                Style Guide & Brand Identity
+            </h2>
+
+            <h3 style="color: #F1F5F9; margin-bottom: 1rem; font-size: 1.2rem;">Color Palette</h3>
+            <div class="color-palette">
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #0F172A;"></div>
+                    <div class="color-name">Deep Navy</div>
+                    <div class="color-hex">#0F172A</div>
+                    <p style="font-size: 0.8rem; color: #94A3B8; margin-top: 0.5rem;">Primary background, exclusivity</p>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #1E293B;"></div>
+                    <div class="color-name">Slate Dark</div>
+                    <div class="color-hex">#1E293B</div>
+                    <p style="font-size: 0.8rem; color: #94A3B8; margin-top: 0.5rem;">Secondary background</p>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #3B82F6;"></div>
+                    <div class="color-name">Electric Blue</div>
+                    <div class="color-hex">#3B82F6</div>
+                    <p style="font-size: 0.8rem; color: #94A3B8; margin-top: 0.5rem;">Primary actions, focus</p>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #10B981;"></div>
+                    <div class="color-name">AI Green</div>
+                    <div class="color-hex">#10B981</div>
+                    <p style="font-size: 0.8rem; color: #94A3B8; margin-top: 0.5rem;">AI elements, success states</p>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #7C3AED;"></div>
+                    <div class="color-name">Premium Purple</div>
+                    <div class="color-hex">#7C3AED</div>
+                    <p style="font-size: 0.8rem; color: #94A3B8; margin-top: 0.5rem;">Exclusive features, VIP</p>
+                </div>
+                <div class="color-card">
+                    <div class="color-swatch" style="background: #EF4444;"></div>
+                    <div class="color-name">Alert Red</div>
+                    <div class="color-hex">#EF4444</div>
+                    <p style="font-size: 0.8rem; color: #94A3B8; margin-top: 0.5rem;">Threats, critical alerts</p>
+                </div>
+            </div>
+
+            <h3 style="color: #F1F5F9; margin: 2rem 0 1rem; font-size: 1.2rem;">Typography</h3>
+            <div class="card">
+                <h1 style="font-size: 2.5rem; font-weight: 700; margin-bottom: 0.5rem;">Inter Bold - Headings</h1>
+                <h2 style="font-size: 1.5rem; font-weight: 600; margin-bottom: 0.5rem;">Inter Semibold - Subheadings</h2>
+                <p style="font-size: 1rem; font-weight: 400; margin-bottom: 0.5rem;">Inter Regular - Body text and descriptions</p>
+                <p style="font-size: 0.875rem; font-weight: 500; color: #94A3B8;">Inter Medium - UI labels and buttons</p>
+                <p style="font-family: 'Courier New', monospace; font-size: 0.875rem; color: #10B981; margin-top: 1rem;">Courier New - Code snippets and technical data</p>
+            </div>
+
+            <h3 style="color: #F1F5F9; margin: 2rem 0 1rem; font-size: 1.2rem;">Comprehensive Icon System</h3>
+            <div class="icon-grid">
+                <div class="icon-item">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="#3B82F6" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 17L12 22L22 17" stroke="#3B82F6" stroke-width="2" stroke-linejoin="round"/>
+                        <path d="M2 12L12 17L22 12" stroke="#3B82F6" stroke-width="2" stroke-linejoin="round"/>
+                    </svg>
+                    <p style="font-size: 0.8rem; color: #94A3B8;">Security Shield</p>
+                </div>
+                <div class="icon-item">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="3" stroke="#10B981" stroke-width="2"/>
+                        <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1" stroke="#10B981" stroke-width="2"/>
+                    </svg>
+                    <p style="font-size: 0.8rem; color: #94A3B8;">AI Assistant</p>
+                </div>
+                <div class="icon-item">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M6 9l6 6 6-6" stroke="#7C3AED" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M12 3v18" stroke="#7C3AED" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                    <p style="font-size: 0.8rem; color: #94A3B8;">Threat Detection</p>
+                </div>
+                <div class="icon-item">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2" stroke="#F59E0B" stroke-width="2"/>
+                        <circle cx="9" cy="9" r="2" stroke="#F59E0B" stroke-width="2"/>
+                        <path d="M21 15l-3.086-3.086a2 2 0 00-2.828 0L6 21" stroke="#F59E0B" stroke-width="2"/>
+                    </svg>
+                    <p style="font-size: 0.8rem; color: #94A3B8;">Analytics</p>
+                </div>
+                <div class="icon-item">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" stroke="#EF4444" stroke-width="2"/>
+                        <polyline points="14,2 14,8 20,8" stroke="#EF4444" stroke-width="2"/>
+                        <line x1="16" y1="13" x2="8" y2="13" stroke="#EF4444" stroke-width="2"/>
+                        <line x1="16" y1="17" x2="8" y2="17" stroke="#EF4444" stroke-width="2"/>
+                    </svg>
+                    <p style="font-size: 0.8rem; color: #94A3B8;">Incident Reports</p>
+                </div>
+                <div class="icon-item">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="12" cy="12" r="10" stroke="#3B82F6" stroke-width="2"/>
+                        <polyline points="12,6 12,12 16,14" stroke="#3B82F6" stroke-width="2"/>
+                    </svg>
+                    <p style="font-size: 0.8rem; color: #94A3B8;">Real-time Monitor</p>
+                </div>
+                <div class="icon-item">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" stroke="#10B981" stroke-width="2"/>
+                        <polyline points="3.27,6.96 12,12.01 20.73,6.96" stroke="#10B981" stroke-width="2"/>
+                        <line x1="12" y1="22.08" x2="12" y2="12" stroke="#10B981" stroke-width="2"/>
+                    </svg>
+                    <p style="font-size: 0.8rem; color: #94A3B8;">Network Security</p>
+                </div>
+                <div class="icon-item">
+                    <svg class="icon-svg" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M9 12l2 2 4-4" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3" stroke="#10B981" stroke-width="2"/>
+                        <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3" stroke="#10B981" stroke-width="2"/>
+                        <path d="M12 3c0 1-1 3-3 3s-3-2-3-3 1-3 3-3 3 2 3 3" stroke="#10B981" stroke-width="2"/>
+                        <path d="M12 21c0-1 1-3 3-3s3 2 3 3-1 3-3 3-3-2-3-3" stroke="#10B981" stroke-width="2"/>
+                    </svg>
+                    <p style="font-size: 0.8rem; color: #94A3B8;">Compliance Check</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Screen Designs Section -->
+        <div id="screens" class="section hidden">
+            <h2 class="section-title">
+                <div class="section-icon">📱</div>
+                Detailed Screen Designs
+            </h2>
+
+            <div class="component-grid">
+                <div class="component-card">
+                    <h3 class="component-title">1. Login Screen</h3>
+                    <div class="screen-mockup">
+                        <div class="mockup-component">// LOGIN_SCREEN_CONTAINER</div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Header</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Logo: Super Blue Team + Shield Icon</div>
+                                <div class="mockup-text">Tagline: "Elite SOC Training • AI-Powered • Invite Only"</div>
+                                <div class="mockup-component">Exclusive Badge</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Login Form</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Input: Invitation Code (with validation)</div>
+                                <div class="mockup-text">Input: Email Address</div>
+                                <div class="mockup-text">Input: Secure Password</div>
+                                <div class="mockup-action">Button: "Access Platform" (Primary)</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Security Features</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">2FA Integration</div>
+                                <div class="mockup-text">Biometric Option</div>
+                                <div class="mockup-text">Session Security Indicator</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">2. Dashboard</h3>
+                    <div class="screen-mockup">
+                        <div class="mockup-component">// DASHBOARD_CONTAINER</div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Navigation Header</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Logo + User Avatar</div>
+                                <div class="mockup-text">Nav: Dashboard | Learning | Challenges | Community</div>
+                                <div class="mockup-component">AI Status Indicator</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Hero Section</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Welcome Message: "Welcome back, [Name]"</div>
+                                <div class="mockup-component">AI Personalized Recommendations</div>
+                                <div class="mockup-text">Progress Overview: 73% Complete</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Learning Path Cards</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Card: "Advanced Threat Hunting" (In Progress)</div>
+                                <div class="mockup-text">Card: "SIEM Mastery with Wazuh" (Recommended)</div>
+                                <div class="mockup-text">Card: "Incident Response Playbooks" (New)</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Sidebar Tools</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Quick Access: Wazuh Dashboard</div>
+                                <div class="mockup-text">Quick Access: Threat Intel Feed</div>
+                                <div class="mockup-action">AI Grok Assistant (Always Available)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">3. Learning Path</h3>
+                    <div class="screen-mockup">
+                        <div class="mockup-component">// LEARNING_PATH_CONTAINER</div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Path Header</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Title: "Advanced Threat Hunting"</div>
+                                <div class="mockup-text">Difficulty: Expert Level</div>
+                                <div class="mockup-component">Progress Bar: 73% Complete</div>
+                                <div class="mockup-text">Estimated Time: 12 hours remaining</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Module Timeline</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">✅ Module 1: Threat Landscape Overview</div>
+                                <div class="mockup-text">✅ Module 2: MITRE ATT&CK Framework</div>
+                                <div class="mockup-text">🔄 Module 3: Advanced Log Analysis (Current)</div>
+                                <div class="mockup-text">🔒 Module 4: Behavioral Analytics</div>
+                                <div class="mockup-text">🔒 Module 5: Threat Intelligence Integration</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">AI Learning Assistant</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-action">Grok AI: "Need help with log parsing?"</div>
+                                <div class="mockup-text">Personalized Hints Available</div>
+                                <div class="mockup-text">Adaptive Difficulty Adjustment</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">4. Challenge Page</h3>
+                    <div class="screen-mockup">
+                        <div class="mockup-component">// CHALLENGE_CONTAINER</div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Challenge Header</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Title: "APT29 Attack Simulation"</div>
+                                <div class="mockup-text">Type: Hands-on Lab</div>
+                                <div class="mockup-component">Timer: 45:23 remaining</div>
+                                <div class="mockup-text">Points: 500 XP</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Lab Environment</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Virtual SOC Environment</div>
+                                <div class="mockup-text">Live Wazuh Dashboard</div>
+                                <div class="mockup-text">Simulated Network Traffic</div>
+                                <div class="mockup-action">Terminal Access Available</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">AI Assistance Panel</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-action">Grok Hint Button (3 hints remaining)</div>
+                                <div class="mockup-text">Real-time Performance Feedback</div>
+                                <div class="mockup-text">Adaptive Guidance System</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Progress Tracking</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-component">Step Progress: 3/7 Complete</div>
+                                <div class="mockup-text">Current Objective: "Identify C2 Communication"</div>
+                                <div class="mockup-action">Submit Answer Button</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">5. Performance Analysis</h3>
+                    <div class="screen-mockup">
+                        <div class="mockup-component">// PERFORMANCE_CONTAINER</div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Performance Overview</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Overall Score: 847/1000</div>
+                                <div class="mockup-text">Rank: Elite Analyst (Top 5%)</div>
+                                <div class="mockup-component">Skill Radar Chart</div>
+                                <div class="mockup-text">Strengths: Threat Hunting, Log Analysis</div>
+                                <div class="mockup-text">Growth Areas: Forensics, Compliance</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">AI-Powered Insights</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-action">Grok Analysis: "Your pattern recognition improved 23%"</div>
+                                <div class="mockup-text">Personalized Learning Recommendations</div>
+                                <div class="mockup-text">Predicted Career Path Alignment</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Achievement System</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">🏆 Recent: "Threat Hunter Elite"</div>
+                                <div class="mockup-text">🎯 Next Goal: "SIEM Master" (87% progress)</div>
+                                <div class="mockup-component">Certification Progress</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">6. Community Forum</h3>
+                    <div class="screen-mockup">
+                        <div class="mockup-component">// COMMUNITY_CONTAINER</div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Forum Header</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Title: "Elite SOC Community"</div>
+                                <div class="mockup-text">Members: 2,847 verified professionals</div>
+                                <div class="mockup-component">Exclusive Access Badge</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Discussion Categories</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">🔥 Trending: "Zero-Day Response Strategies"</div>
+                                <div class="mockup-text">💡 Knowledge Sharing: "Wazuh Custom Rules"</div>
+                                <div class="mockup-text">🎯 Challenge Solutions: "APT29 Walkthrough"</div>
+                                <div class="mockup-text">🤝 Mentorship: "Career Guidance"</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">AI Moderation</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-action">Grok Content Curation</div>
+                                <div class="mockup-text">Quality Score System</div>
+                                <div class="mockup-text">Expert Verification</div>
+                            </div>
+                        </div>
+                        <div class="mockup-layer">
+                            <div class="mockup-component">Networking Features</div>
+                            <div class="mockup-layer">
+                                <div class="mockup-text">Industry Expert AMAs</div>
+                                <div class="mockup-text">Peer Collaboration Tools</div>
+                                <div class="mockup-action">Direct Messaging (Verified Only)</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Components Section -->
+        <div id="components" class="section hidden">
+            <h2 class="section-title">
+                <div class="section-icon">🧩</div>
+                Comprehensive Components & Analytics
+            </h2>
+
+            <!-- Charts and Analytics -->
+            <h3 style="color: #F1F5F9; margin-bottom: 1.5rem; font-size: 1.3rem;">📊 Advanced Charts & Analytics</h3>
+            <div class="component-grid">
+                <div class="chart-container">
+                    <div class="chart-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <polygon points="12,2 22,8.5 22,15.5 12,22 2,15.5 2,8.5" stroke="#10B981" stroke-width="2" fill="none"/>
+                            <polygon points="12,7 18,10 18,14 12,17 6,14 6,10" stroke="#3B82F6" stroke-width="2" fill="none"/>
+                        </svg>
+                        Skill Assessment Radar
+                    </div>
+                    <svg class="radar-chart" viewBox="0 0 200 200">
+                        <!-- Grid -->
+                        <g stroke="#475569" stroke-width="1" fill="none">
+                            <polygon points="100,20 171,60 171,140 100,180 29,140 29,60" opacity="0.3"/>
+                            <polygon points="100,40 151,70 151,130 100,160 49,130 49,70" opacity="0.3"/>
+                            <polygon points="100,60 131,80 131,120 100,140 69,120 69,80" opacity="0.3"/>
+                        </g>
+                        <!-- Axes -->
+                        <g stroke="#94A3B8" stroke-width="1">
+                            <line x1="100" y1="100" x2="100" y2="20"/>
+                            <line x1="100" y1="100" x2="171" y2="60"/>
+                            <line x1="100" y1="100" x2="171" y2="140"/>
+                            <line x1="100" y1="100" x2="100" y2="180"/>
+                            <line x1="100" y1="100" x2="29" y2="140"/>
+                            <line x1="100" y1="100" x2="29" y2="60"/>
+                        </g>
+                        <!-- Data -->
+                        <polygon points="100,35 156,65 151,125 100,155 54,125 49,75" 
+                                 fill="rgba(59, 130, 246, 0.2)" stroke="#3B82F6" stroke-width="2"/>
+                        <!-- Labels -->
+                        <text x="100" y="15" text-anchor="middle" fill="#F1F5F9" font-size="10">Threat Hunting</text>
+                        <text x="175" y="65" text-anchor="start" fill="#F1F5F9" font-size="10">SIEM</text>
+                        <text x="175" y="145" text-anchor="start" fill="#F1F5F9" font-size="10">Forensics</text>
+                        <text x="100" y="195" text-anchor="middle" fill="#F1F5F9" font-size="10">Compliance</text>
+                        <text x="25" y="145" text-anchor="end" fill="#F1F5F9" font-size="10">Incident Response</text>
+                        <text x="25" y="65" text-anchor="end" fill="#F1F5F9" font-size="10">Malware Analysis</text>
+                    </svg>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="12" r="10" stroke="#10B981" stroke-width="2"/>
+                            <path d="M12 6v6l4 2" stroke="#10B981" stroke-width="2"/>
+                        </svg>
+                        Learning Progress
+                    </div>
+                    <svg class="donut-chart" viewBox="0 0 120 120">
+                        <circle cx="60" cy="60" r="40" fill="none" stroke="#334155" stroke-width="8"/>
+                        <circle cx="60" cy="60" r="40" fill="none" stroke="url(#progressGradient)" stroke-width="8"
+                                stroke-dasharray="184" stroke-dashoffset="55" stroke-linecap="round" 
+                                transform="rotate(-90 60 60)"/>
+                        <defs>
+                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                <stop offset="0%" style="stop-color:#3B82F6"/>
+                                <stop offset="100%" style="stop-color:#10B981"/>
+                            </linearGradient>
+                        </defs>
+                        <text x="60" y="55" text-anchor="middle" fill="#F1F5F9" font-size="18" font-weight="bold">73%</text>
+                        <text x="60" y="70" text-anchor="middle" fill="#94A3B8" font-size="10">Complete</text>
+                    </svg>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M3 3v18h18" stroke="#EF4444" stroke-width="2"/>
+                            <path d="M7 12l3-3 3 3 5-5" stroke="#EF4444" stroke-width="2"/>
+                        </svg>
+                        Threat Levels (Live)
+                    </div>
+                    <div class="bar-chart">
+                        <div class="bar" style="height: 60%;">
+                            <div class="bar-label">Low</div>
+                        </div>
+                        <div class="bar" style="height: 80%;">
+                            <div class="bar-label">Med</div>
+                        </div>
+                        <div class="bar" style="height: 45%;">
+                            <div class="bar-label">High</div>
+                        </div>
+                        <div class="bar" style="height: 90%;">
+                            <div class="bar-label">Crit</div>
+                        </div>
+                    </div>
+                    <p style="color: #94A3B8; font-size: 0.8rem; text-align: center;">Hover bars for details</p>
+                </div>
+            </div>
+
+            <!-- Dashboard Widgets -->
+            <h3 style="color: #F1F5F9; margin: 2rem 0 1.5rem; font-size: 1.3rem;">🖥️ Dashboard Widgets</h3>
+            <div class="widget-grid">
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Performance Metrics</div>
+                        <span class="status-indicator status-online"></span>
+                    </div>
+                    <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 1rem;">
+                        <div class="metric-card">
+                            <div class="metric-value">847</div>
+                            <div class="metric-label">Total Score</div>
+                            <div class="metric-trend trend-up">
+                                <span>↗</span>
+                                <span>+12%</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-value">23</div>
+                            <div class="metric-label">Challenges</div>
+                            <div class="metric-trend trend-up">
+                                <span>↗</span>
+                                <span>+3</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Threat Intelligence Feed</div>
+                        <span class="status-indicator status-warning"></span>
+                    </div>
+                    <div style="space-y: 0.5rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                            <span style="color: #CBD5E1; font-size: 0.9rem;">APT29 Campaign Detected</span>
+                            <span class="threat-level threat-high">High</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #334155;">
+                            <span style="color: #CBD5E1; font-size: 0.9rem;">Phishing Spike - Finance Sector</span>
+                            <span class="threat-level threat-medium">Medium</span>
+                        </div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0;">
+                            <span style="color: #CBD5E1; font-size: 0.9rem;">New CVE Published</span>
+                            <span class="threat-level threat-low">Low</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">AI Assistant Status</div>
+                        <span class="status-indicator status-online pulse"></span>
+                    </div>
+                    <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 8px; padding: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                            <span style="font-size: 1.2rem;">🤖</span>
+                            <span style="color: #10B981; font-weight: 600;">Grok AI Online</span>
+                        </div>
+                        <p style="color: #CBD5E1; font-size: 0.9rem; margin-bottom: 1rem;">Ready to assist with threat analysis and learning guidance.</p>
+                        <button class="btn btn-ai" style="width: 100%; padding: 0.5rem;">Ask Grok</button>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Recent Activity</div>
+                        <span class="status-indicator status-online"></span>
+                    </div>
+                    <div class="timeline">
+                        <div class="timeline-item completed">
+                            <div style="color: #F1F5F9; font-weight: 500;">Completed: APT29 Challenge</div>
+                            <div style="color: #94A3B8; font-size: 0.8rem;">2 hours ago • +500 XP</div>
+                        </div>
+                        <div class="timeline-item completed">
+                            <div style="color: #F1F5F9; font-weight: 500;">Unlocked: SIEM Advanced Module</div>
+                            <div style="color: #94A3B8; font-size: 0.8rem;">1 day ago</div>
+                        </div>
+                        <div class="timeline-item current">
+                            <div style="color: #F1F5F9; font-weight: 500;">In Progress: Log Analysis Lab</div>
+                            <div style="color: #94A3B8; font-size: 0.8rem;">Started 3 hours ago</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Lab Environment</div>
+                        <span class="status-indicator status-online"></span>
+                    </div>
+                    <div class="lab-status">
+                        <div class="lab-item">
+                            <span class="status-indicator status-online"></span>
+                            <span style="color: #CBD5E1; font-size: 0.9rem;">Wazuh SIEM</span>
+                        </div>
+                        <div class="lab-item">
+                            <span class="status-indicator status-online"></span>
+                            <span style="color: #CBD5E1; font-size: 0.9rem;">ELK Stack</span>
+                        </div>
+                        <div class="lab-item">
+                            <span class="status-indicator status-warning"></span>
+                            <span style="color: #CBD5E1; font-size: 0.9rem;">Splunk</span>
+                        </div>
+                        <div class="lab-item">
+                            <span class="status-indicator status-error"></span>
+                            <span style="color: #CBD5E1; font-size: 0.9rem;">MISP</span>
+                        </div>
+                    </div>
+                    <button class="btn btn-secondary" style="width: 100%; margin-top: 1rem;">Launch Lab</button>
+                </div>
+
+                <div class="widget">
+                    <div class="widget-header">
+                        <div class="widget-title">Learning Streak</div>
+                        <span class="status-indicator status-online"></span>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 0.5rem;">🔥</div>
+                        <div style="font-size: 2rem; font-weight: 700; color: #F59E0B; margin-bottom: 0.5rem;">14</div>
+                        <div style="color: #94A3B8; font-size: 0.9rem; margin-bottom: 1rem;">Days in a row</div>
+                        <div style="display: flex; justify-content: center; gap: 0.25rem;">
+                            <div style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></div>
+                            <div style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></div>
+                            <div style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></div>
+                            <div style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></div>
+                            <div style="width: 8px; height: 8px; background: #10B981; border-radius: 50%;"></div>
+                            <div style="width: 8px; height: 8px; background: #F59E0B; border-radius: 50%;"></div>
+                            <div style="width: 8px; height: 8px; background: #334155; border-radius: 50%;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Professional Components -->
+            <h3 style="color: #F1F5F9; margin: 2rem 0 1.5rem; font-size: 1.3rem;">🔧 Professional Components</h3>
+
+            <div class="component-grid">
+                <div class="component-card">
+                    <h3 class="component-title">SOC Terminal Interface</h3>
+                    <div class="terminal">
+                        <div class="terminal-header">
+                            <div class="terminal-dot dot-red"></div>
+                            <div class="terminal-dot dot-yellow"></div>
+                            <div class="terminal-dot dot-green"></div>
+                            <span style="color: #94A3B8; font-size: 0.8rem; margin-left: 1rem;">soc-analyst@blueteam:~$</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-prompt">analyst@soc:~$</span>
+                            <span class="terminal-command"> tail -f /var/log/wazuh/alerts.log</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">2024-01-15 14:23:45 [ALERT] Suspicious PowerShell execution detected</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">2024-01-15 14:24:12 [INFO] Threat hunting query executed</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-prompt">analyst@soc:~$</span>
+                            <span class="terminal-command"> grep -i "apt29" threat_intel.json</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-output">{"threat_actor": "APT29", "confidence": "high", "iocs": [...]}</span>
+                        </div>
+                        <div class="terminal-line">
+                            <span class="terminal-prompt">analyst@soc:~$</span>
+                            <span style="color: #F1F5F9;">█</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Advanced Notification System</h3>
+                    <div class="component-demo">
+                        <div class="notification notification-success">
+                            <div style="font-size: 1.2rem;">✅</div>
+                            <div>
+                                <div style="color: #F1F5F9; font-weight: 600; margin-bottom: 0.25rem;">Challenge Completed!</div>
+                                <div style="color: #94A3B8; font-size: 0.9rem;">APT29 Simulation - Earned 500 XP</div>
+                            </div>
+                        </div>
+                        <div class="notification notification-warning">
+                            <div style="font-size: 1.2rem;">⚠️</div>
+                            <div>
+                                <div style="color: #F1F5F9; font-weight: 600; margin-bottom: 0.25rem;">Threat Detected</div>
+                                <div style="color: #94A3B8; font-size: 0.9rem;">Suspicious network activity in lab environment</div>
+                            </div>
+                        </div>
+                        <div class="notification notification-info">
+                            <div style="font-size: 1.2rem;">🤖</div>
+                            <div>
+                                <div style="color: #F1F5F9; font-weight: 600; margin-bottom: 0.25rem;">AI Insight Available</div>
+                                <div style="color: #94A3B8; font-size: 0.9rem;">Grok has identified a pattern in your analysis</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Professional Data Table</h3>
+                    <div class="component-demo">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Timestamp</th>
+                                    <th>Event Type</th>
+                                    <th>Severity</th>
+                                    <th>Source IP</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>14:23:45</td>
+                                    <td>Malware Detection</td>
+                                    <td><span class="threat-level threat-high">High</span></td>
+                                    <td>192.168.1.100</td>
+                                </tr>
+                                <tr>
+                                    <td>14:22:31</td>
+                                    <td>Failed Login</td>
+                                    <td><span class="threat-level threat-medium">Medium</span></td>
+                                    <td>10.0.0.45</td>
+                                </tr>
+                                <tr>
+                                    <td>14:21:18</td>
+                                    <td>Port Scan</td>
+                                    <td><span class="threat-level threat-low">Low</span></td>
+                                    <td>172.16.0.23</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Enhanced Form Elements</h3>
+                    <div class="component-demo">
+                        <div class="form-group">
+                            <label class="form-label">Threat Intelligence Query</label>
+                            <input type="text" class="form-input" placeholder="Enter IOC, hash, or domain..." value="apt29.malware.com">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Analysis Type</label>
+                            <select class="form-input form-select">
+                                <option>Behavioral Analysis</option>
+                                <option>Static Analysis</option>
+                                <option>Dynamic Analysis</option>
+                                <option>Threat Hunting</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Time Range</label>
+                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem;">
+                                <input type="datetime-local" class="form-input" value="2024-01-15T09:00">
+                                <input type="datetime-local" class="form-input" value="2024-01-15T17:00">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Primary Buttons</h3>
+                    <div class="component-demo">
+                        <button class="btn btn-primary">Access Platform</button>
+                        <button class="btn btn-ai">Ask Grok AI</button>
+                        <button class="btn btn-secondary">Learn More</button>
+                    </div>
+                    <p style="color: #94A3B8; font-size: 0.9rem;">Gradient backgrounds, hover animations, consistent spacing</p>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Progress Indicators</h3>
+                    <div class="component-demo">
+                        <div style="margin-bottom: 1rem;">
+                            <div style="display: flex; justify-content: between; margin-bottom: 0.5rem;">
+                                <span style="color: #F1F5F9; font-weight: 500;">Threat Hunting Mastery</span>
+                                <span style="color: #10B981;">73%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 73%;"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div style="display: flex; justify-content: between; margin-bottom: 0.5rem;">
+                                <span style="color: #F1F5F9; font-weight: 500;">SIEM Expertise</span>
+                                <span style="color: #3B82F6;">45%</span>
+                            </div>
+                            <div class="progress-bar">
+                                <div class="progress-fill" style="width: 45%;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Status Badges</h3>
+                    <div class="component-demo" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <span class="badge badge-exclusive">👑 Invite Only</span>
+                        <span class="badge badge-ai">🤖 AI Powered</span>
+                        <span class="badge" style="background: #EF4444; color: white;">🚨 Critical</span>
+                        <span class="badge" style="background: #F59E0B; color: white;">⚡ In Progress</span>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Learning Path Cards</h3>
+                    <div class="component-demo">
+                        <div class="card">
+                            <div style="display: flex; justify-content: between; align-items: start; margin-bottom: 1rem;">
+                                <h4 style="color: #F1F5F9; font-weight: 600;">Advanced Threat Hunting</h4>
+                                <span class="badge badge-ai">🤖 AI Enhanced</span>
+                            </div>
+                            <p style="color: #94A3B8; margin-bottom: 1rem; font-size: 0.9rem;">Master advanced techniques for identifying sophisticated threats in enterprise environments.</p>
+                            <div class="progress-bar" style="margin-bottom: 1rem;">
+                                <div class="progress-fill" style="width: 73%;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: between; align-items: center;">
+                                <span style="color: #10B981; font-size: 0.9rem;">73% Complete</span>
+                                <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.9rem;">Continue</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">AI Hint System</h3>
+                    <div class="component-demo">
+                        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 8px; padding: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.2rem;">🤖</span>
+                                <span style="color: #10B981; font-weight: 600;">Grok AI Assistant</span>
+                            </div>
+                            <p style="color: #CBD5E1; font-size: 0.9rem; margin-bottom: 1rem;">"I notice you're analyzing network logs. Try focusing on unusual port combinations - they often reveal C2 communications."</p>
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button class="btn btn-ai" style="padding: 0.5rem 1rem; font-size: 0.8rem;">More Hints (2 left)</button>
+                                <button class="btn btn-secondary" style="padding: 0.5rem 1rem; font-size: 0.8rem;">Got it!</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Challenge Timer</h3>
+                    <div class="component-demo">
+                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; border-radius: 8px; padding: 1rem; text-align: center;">
+                            <div style="font-size: 2rem; font-weight: 700; color: #EF4444; margin-bottom: 0.5rem;" class="pulse">45:23</div>
+                            <p style="color: #CBD5E1; font-size: 0.9rem;">Time Remaining</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Interactions Section -->
+        <div id="interactions" class="section hidden">
+            <h2 class="section-title">
+                <div class="section-icon">⚡</div>
+                Interactions & Animations
+            </h2>
+
+            <div class="component-grid">
+                <div class="component-card">
+                    <h3 class="component-title">Hover States</h3>
+                    <div class="component-demo">
+                        <p style="color: #94A3B8; margin-bottom: 1rem;">All interactive elements have smooth hover transitions:</p>
+                        <ul style="color: #CBD5E1; list-style: none; padding-left: 0;">
+                            <li style="margin-bottom: 0.5rem;">• Buttons: Lift effect + shadow enhancement</li>
+                            <li style="margin-bottom: 0.5rem;">• Cards: Border glow + subtle lift</li>
+                            <li style="margin-bottom: 0.5rem;">• Navigation: Color transition + underline</li>
+                            <li style="margin-bottom: 0.5rem;">• AI elements: Pulse + glow effect</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Loading States</h3>
+                    <div class="component-demo">
+                        <div style="display: flex; align-items: center; gap: 1rem; padding: 1rem; background: rgba(51, 65, 85, 0.3); border-radius: 8px;">
+                            <div style="width: 20px; height: 20px; border: 2px solid #3B82F6; border-top: 2px solid transparent; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <span style="color: #CBD5E1;">AI is analyzing your response...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Success Animations</h3>
+                    <div class="component-demo">
+                        <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 8px; padding: 1rem; text-align: center;">
+                            <div style="font-size: 3rem; margin-bottom: 0.5rem;">✅</div>
+                            <p style="color: #10B981; font-weight: 600;">Challenge Completed!</p>
+                            <p style="color: #CBD5E1; font-size: 0.9rem;">+500 XP earned</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">AI Feedback Animation</h3>
+                    <div class="component-demo">
+                        <div style="background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 8px; padding: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span style="font-size: 1.2rem;" class="pulse">🤖</span>
+                                <span style="color: #10B981; font-weight: 600;">Real-time AI Feedback</span>
+                            </div>
+                            <p style="color: #CBD5E1; font-size: 0.9rem;">Subtle fade-in animations for AI responses, with typing indicators and smooth transitions.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Page Transitions</h3>
+                    <div class="component-demo">
+                        <p style="color: #94A3B8; margin-bottom: 1rem;">Smooth page transitions:</p>
+                        <ul style="color: #CBD5E1; list-style: none; padding-left: 0;">
+                            <li style="margin-bottom: 0.5rem;">• Fade-in: 0.6s ease-out</li>
+                            <li style="margin-bottom: 0.5rem;">• Slide-up: 20px transform</li>
+                            <li style="margin-bottom: 0.5rem;">• Staggered animations for lists</li>
+                            <li style="margin-bottom: 0.5rem;">• Reduced motion respect</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Micro-interactions</h3>
+                    <div class="component-demo">
+                        <p style="color: #94A3B8; margin-bottom: 1rem;">Delightful micro-interactions:</p>
+                        <ul style="color: #CBD5E1; list-style: none; padding-left: 0;">
+                            <li style="margin-bottom: 0.5rem;">• Progress bar fills with easing</li>
+                            <li style="margin-bottom: 0.5rem;">• Badge appearance with scale</li>
+                            <li style="margin-bottom: 0.5rem;">• Timer pulse for urgency</li>
+                            <li style="margin-bottom: 0.5rem;">• AI hint reveal animation</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Accessibility Section -->
+        <div id="accessibility" class="section hidden">
+            <h2 class="section-title">
+                <div class="section-icon">♿</div>
+                Accessibility & Inclusive Design
+            </h2>
+
+            <div class="component-grid">
+                <div class="component-card">
+                    <h3 class="component-title">Color Contrast</h3>
+                    <div class="component-demo">
+                        <p style="color: #94A3B8; margin-bottom: 1rem;">WCAG 2.1 AA compliant contrast ratios:</p>
+                        <div style="display: grid; gap: 0.5rem;">
+                            <div style="display: flex; justify-content: between; padding: 0.5rem; background: #3B82F6; color: white; border-radius: 4px;">
+                                <span>Primary Blue on White</span>
+                                <span>4.5:1 ✅</span>
+                            </div>
+                            <div style="display: flex; justify-content: between; padding: 0.5rem; background: #10B981; color: white; border-radius: 4px;">
+                                <span>AI Green on White</span>
+                                <span>4.8:1 ✅</span>
+                            </div>
+                            <div style="display: flex; justify-content: between; padding: 0.5rem; background: #0F172A; color: #E2E8F0; border-radius: 4px;">
+                                <span>Text on Dark Background</span>
+                                <span>12.6:1 ✅</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Screen Reader Support</h3>
+                    <div class="component-demo">
+                        <p style="color: #94A3B8; margin-bottom: 1rem;">Comprehensive ARIA labels and semantic HTML:</p>
+                        <div style="background: rgba(51, 65, 85, 0.3); padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.8rem; color: #10B981;">
+                            &lt;button aria-label="Get AI hint for current challenge"&gt;<br/>
+                            &nbsp;&nbsp;Ask Grok AI<br/>
+                            &lt;/button&gt;<br/><br/>
+                            &lt;div role="progressbar" aria-valuenow="73" aria-valuemax="100"&gt;<br/>
+                            &nbsp;&nbsp;Progress: 73% complete<br/>
+                            &lt;/div&gt;<br/><br/>
+                            &lt;nav aria-label="Main navigation"&gt;<br/>
+                            &nbsp;&nbsp;Dashboard | Learning | Challenges<br/>
+                            &lt;/nav&gt;
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Keyboard Navigation</h3>
+                    <div class="component-demo">
+                        <p style="color: #94A3B8; margin-bottom: 1rem;">Full keyboard accessibility:</p>
+                        <ul style="color: #CBD5E1; list-style: none; padding-left: 0;">
+                            <li style="margin-bottom: 0.5rem;">• Tab order follows logical flow</li>
+                            <li style="margin-bottom: 0.5rem;">• Focus indicators clearly visible</li>
+                            <li style="margin-bottom: 0.5rem;">• Skip links for main content</li>
+                            <li style="margin-bottom: 0.5rem;">• Escape key closes modals</li>
+                            <li style="margin-bottom: 0.5rem;">• Arrow keys for navigation</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Motion Preferences</h3>
+                    <div class="component-demo">
+                        <p style="color: #94A3B8; margin-bottom: 1rem;">Respects user motion preferences:</p>
+                        <div style="background: rgba(51, 65, 85, 0.3); padding: 1rem; border-radius: 8px; font-family: 'Courier New', monospace; font-size: 0.8rem; color: #10B981;">
+                            @media (prefers-reduced-motion: reduce) {<br/>
+                            &nbsp;&nbsp;* {<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;animation-duration: 0.01ms !important;<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;animation-iteration-count: 1 !important;<br/>
+                            &nbsp;&nbsp;&nbsp;&nbsp;transition-duration: 0.01ms !important;<br/>
+                            &nbsp;&nbsp;}<br/>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Text Scaling</h3>
+                    <div class="component-demo">
+                        <p style="color: #94A3B8; margin-bottom: 1rem;">Supports up to 200% text scaling without horizontal scrolling:</p>
+                        <ul style="color: #CBD5E1; list-style: none; padding-left: 0;">
+                            <li style="margin-bottom: 0.5rem;">• Relative units (rem, em)</li>
+                            <li style="margin-bottom: 0.5rem;">• Flexible layouts</li>
+                            <li style="margin-bottom: 0.5rem;">• Responsive typography</li>
+                            <li style="margin-bottom: 0.5rem;">• Container queries support</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="component-card">
+                    <h3 class="component-title">Error Handling</h3>
+                    <div class="component-demo">
+                        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid #EF4444; border-radius: 8px; padding: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem;">
+                                <span style="color: #EF4444;">⚠️</span>
+                                <span style="color: #EF4444; font-weight: 600;">Validation Error</span>
+                            </div>
+                            <p style="color: #CBD5E1; font-size: 0.9rem;">Clear, descriptive error messages with suggested actions and screen reader announcements.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Guide Section -->
+        <div id="export" class="section hidden">
+            <h2 class="section-title">
+                <div class="section-icon">📤</div>
+                Export Instructions & Implementation Guide
+            </h2>
+
+            <div class="export-section">
+                <h3 class="export-title">Figma Export Instructions</h3>
+                <ul class="export-list">
+                    <li>Create new Figma file: "Super Blue Team - Design System"</li>
+                    <li>Set up 1440px desktop frames for each screen</li>
+                    <li>Create component library with all reusable elements</li>
+                    <li>Use Auto Layout for responsive components</li>
+                    <li>Set up color styles with exact hex values provided</li>
+                    <li>Create text styles for Inter font family</li>
+                    <li>Add component variants for hover/active states</li>
+                    <li>Export assets as SVG for icons, PNG for complex graphics</li>
+                </ul>
+            </div>
+
+            <div class="export-section">
+                <h3 class="export-title">Adobe XD Export Instructions</h3>
+                <ul class="export-list">
+                    <li>Create artboards: 1440x1024px for desktop layouts</li>
+                    <li>Set up component states for interactive elements</li>
+                    <li>Use repeat grids for learning path cards</li>
+                    <li>Create color swatches from provided palette</li>
+                    <li>Set up character styles for typography</li>
+                    <li>Add micro-interactions using Auto-Animate</li>
+                    <li>Create responsive resize rules</li>
+                    <li>Export specs for developers using Design Specs</li>
+                </ul>
+            </div>
+
+            <div class="component-card">
+                <h3 class="component-title">Development Handoff</h3>
+                <div style="background: rgba(51, 65, 85, 0.3); padding: 1.5rem; border-radius: 8px; margin-top: 1rem;">
+                    <h4 style="color: #F1F5F9; margin-bottom: 1rem;">Technical Specifications</h4>
+                    <ul style="color: #CBD5E1; list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 0.5rem;">• Framework: React/Vue.js with TypeScript</li>
+                        <li style="margin-bottom: 0.5rem;">• Styling: Tailwind CSS + Custom CSS Variables</li>
+                        <li style="margin-bottom: 0.5rem;">• Icons: Heroicons or Lucide React</li>
+                        <li style="margin-bottom: 0.5rem;">• Animations: Framer Motion or CSS Transitions</li>
+                        <li style="margin-bottom: 0.5rem;">• Accessibility: React ARIA or Headless UI</li>
+                        <li style="margin-bottom: 0.5rem;">• Testing: Jest + React Testing Library</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <h3 class="component-title">Asset Organization</h3>
+                <div style="background: rgba(51, 65, 85, 0.3); padding: 1.5rem; border-radius: 8px; margin-top: 1rem;">
+                    <div style="font-family: 'Courier New', monospace; font-size: 0.8rem; color: #10B981;">
+                        /design-system/<br/>
+                        ├── colors/<br/>
+                        │   ├── primary-palette.json<br/>
+                        │   └── semantic-colors.json<br/>
+                        ├── typography/<br/>
+                        │   ├── font-scales.json<br/>
+                        │   └── text-styles.json<br/>
+                        ├── components/<br/>
+                        │   ├── buttons/<br/>
+                        │   ├── cards/<br/>
+                        │   ├── forms/<br/>
+                        │   └── navigation/<br/>
+                        ├── icons/<br/>
+                        │   ├── security/<br/>
+                        │   ├── ai/<br/>
+                        │   └── interface/<br/>
+                        └── screens/<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;├── login.fig<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;├── dashboard.fig<br/>
+                        &nbsp;&nbsp;&nbsp;&nbsp;└── [other-screens].fig
+                    </div>
+                </div>
+            </div>
+
+            <div class="component-card">
+                <h3 class="component-title">Quality Checklist</h3>
+                <div style="background: rgba(16, 185, 129, 0.1); border: 1px solid #10B981; border-radius: 8px; padding: 1.5rem; margin-top: 1rem;">
+                    <ul style="color: #CBD5E1; list-style: none; padding-left: 0;">
+                        <li style="margin-bottom: 0.5rem;">✅ All colors meet WCAG AA contrast requirements</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Components work at 200% zoom level</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Hover states defined for all interactive elements</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Loading and error states documented</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Mobile responsive breakpoints defined</li>
+                        <li style="margin-bottom: 0.5rem;">✅ AI integration points clearly marked</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Exclusive/premium elements highlighted</li>
+                        <li style="margin-bottom: 0.5rem;">✅ Component documentation complete</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
+    <script>
+        function showSection(sectionId) {
+            // Hide all sections
+            const sections = document.querySelectorAll('.section');
+            sections.forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.nav-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Show selected section
+            const targetSection = document.getElementById(sectionId);
+            if (targetSection) {
+                targetSection.classList.remove('hidden');
+                targetSection.classList.add('fade-in');
+            }
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        // Add smooth scrolling and enhanced interactions
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to cards
+            const cards = document.querySelectorAll('.component-card, .card');
+            cards.forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+
+            // Simulate progress bar animations
+            const progressBars = document.querySelectorAll('.progress-fill');
+            progressBars.forEach(bar => {
+                const width = bar.style.width;
+                bar.style.width = '0%';
+                setTimeout(() => {
+                    bar.style.width = width;
+                }, 500);
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96ea584443a19c8f',t:'MTc1NTExMDQ2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

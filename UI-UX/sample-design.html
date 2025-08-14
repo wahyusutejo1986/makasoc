@@ -1,0 +1,2533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SOC Stack Management Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'soc-blue': '#1E40AF',
+                        'soc-dark': '#0F172A',
+                        'soc-gray': '#1E293B',
+                        'soc-light-gray': '#334155',
+                        'threat-red': '#DC2626',
+                        'alert-orange': '#EA580C',
+                        'safe-green': '#059669'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #1E293B;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #64748B;
+        }
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-soc-dark text-white font-sans">
+    <!-- Header -->
+    <header class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-8 h-8 text-soc-blue" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M12 7C13.4 7 14.8 8.6 14.8 10V11.5C15.4 11.5 16 12.4 16 13V16C16 17.4 15.4 18 14.8 18H9.2C8.6 18 8 17.4 8 16V13C8 12.4 8.6 11.5 9.2 11.5V10C9.2 8.6 10.6 7 12 7M12 8.2C11.2 8.2 10.5 8.7 10.5 10V11.5H13.5V10C13.5 8.7 12.8 8.2 12 8.2Z"/>
+                    </svg>
+                    <h1 class="text-xl font-semibold">SOC Stack Dashboard</h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-1 bg-slate-700 rounded-lg p-1">
+                    <button id="overview-tab" class="px-3 py-1 rounded bg-soc-blue text-white text-sm">Overview</button>
+                    <div class="relative">
+                        <button id="tools-dropdown" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm flex items-center space-x-1">
+                            <span>Tools</span>
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="tools-menu" class="absolute top-full left-0 mt-1 w-48 bg-slate-700 border border-slate-600 rounded-lg shadow-lg z-50 hidden">
+                            <button id="wazuh-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">Wazuh SIEM</button>
+                            <button id="securityonion-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">SecurityOnion</button>
+                            <button id="opencti-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">OpenCTI</button>
+                            <button id="misp-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">MISP</button>
+                            <button id="shuffle-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">Shuffle SOAR</button>
+                            <button id="dfir-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">DFIR-IRIS</button>
+                            <button id="velociraptor-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">Velociraptor</button>
+                            <button id="grafana-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">Grafana</button>
+                        </div>
+                    </div>
+                    <button id="docker-tab" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm">Docker</button>
+                    <button id="monitoring-tab" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm">Monitoring</button>
+                    <button id="logs-tab" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm">Logs</button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-safe-green rounded-full pulse-dot"></div>
+                    <span class="text-sm text-gray-400">SOC Status: Operational</span>
+                </div>
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Search threats, alerts..." class="bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-soc-blue">
+                    <svg class="w-4 h-4 absolute left-3 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <button class="p-2 hover:bg-slate-700 rounded-lg relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM9 7H4l5-5v5zM15 7h5l-5-5v5zM9 17H4l5 5v-5z"></path>
+                    </svg>
+                    <span class="absolute -top-1 -right-1 bg-threat-red text-xs rounded-full w-5 h-5 flex items-center justify-center">3</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-soc-gray border-r border-slate-600 hidden lg:block">
+            <div class="p-4">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+                        <span>SECURITY TOOLS</span>
+                        <span class="bg-slate-700 px-2 py-1 rounded text-xs">8</span>
+                    </div>
+                    
+                    <!-- Tool Status List -->
+                    <div class="space-y-2">
+                        <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm">Wazuh SIEM</span>
+                            </div>
+                            <span class="text-xs text-safe-green">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm">SecurityOnion</span>
+                            </div>
+                            <span class="text-xs text-safe-green">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm">OpenCTI</span>
+                            </div>
+                            <span class="text-xs text-safe-green">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm">MISP</span>
+                            </div>
+                            <span class="text-xs text-safe-green">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-alert-orange rounded-full"></div>
+                                <span class="text-sm">Shuffle SOAR</span>
+                            </div>
+                            <span class="text-xs text-alert-orange">Warning</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm">DFIR-IRIS</span>
+                            </div>
+                            <span class="text-xs text-safe-green">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm">Velociraptor</span>
+                            </div>
+                            <span class="text-xs text-safe-green">Online</span>
+                        </div>
+                        <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm">Grafana</span>
+                            </div>
+                            <span class="text-xs text-safe-green">Online</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <div class="text-sm text-gray-400 mb-4">THREAT OVERVIEW</div>
+                    <div class="space-y-3">
+                        <div class="text-xs text-gray-500">
+                            <div class="flex justify-between mb-1">
+                                <span>Critical Alerts</span>
+                                <span class="text-threat-red font-bold">3</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            <div class="flex justify-between mb-1">
+                                <span>High Priority</span>
+                                <span class="text-alert-orange font-bold">12</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            <div class="flex justify-between mb-1">
+                                <span>Medium Priority</span>
+                                <span class="text-yellow-400 font-bold">45</span>
+                            </div>
+                        </div>
+                        <div class="text-xs text-gray-500">
+                            <div class="flex justify-between mb-1">
+                                <span>Low Priority</span>
+                                <span class="text-safe-green font-bold">128</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <div class="text-sm text-gray-400 mb-4">QUICK ACTIONS</div>
+                    <div class="space-y-2">
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-700 text-gray-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm">Create Incident</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-700 text-gray-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <span class="text-sm">Threat Hunt</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-700 text-gray-300">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm">Run Playbook</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Panel -->
+        <main class="flex-1 overflow-hidden">
+            <!-- Overview Tab -->
+            <div id="overview-content" class="h-full">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold">SOC Stack Overview</h2>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Generate Report
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Health Check
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Status Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Active Threats</p>
+                                        <p class="text-2xl font-bold text-threat-red">15</p>
+                                    </div>
+                                    <div class="p-3 bg-red-900 rounded-lg">
+                                        <svg class="w-6 h-6 text-threat-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-xs text-gray-400">
+                                    <span class="text-threat-red">↑ 23%</span> from last hour
+                                </div>
+                            </div>
+
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Incidents</p>
+                                        <p class="text-2xl font-bold text-alert-orange">8</p>
+                                    </div>
+                                    <div class="p-3 bg-orange-900 rounded-lg">
+                                        <svg class="w-6 h-6 text-alert-orange" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-xs text-gray-400">
+                                    <span class="text-safe-green">↓ 12%</span> from yesterday
+                                </div>
+                            </div>
+
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Events/Hour</p>
+                                        <p class="text-2xl font-bold text-soc-blue">2.4K</p>
+                                    </div>
+                                    <div class="p-3 bg-blue-900 rounded-lg">
+                                        <svg class="w-6 h-6 text-soc-blue" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-xs text-gray-400">
+                                    <span class="text-soc-blue">↑ 5%</span> normal range
+                                </div>
+                            </div>
+
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Tools Online</p>
+                                        <p class="text-2xl font-bold text-safe-green">7/8</p>
+                                    </div>
+                                    <div class="p-3 bg-green-900 rounded-lg">
+                                        <svg class="w-6 h-6 text-safe-green" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </div>
+                                </div>
+                                <div class="mt-4 text-xs text-gray-400">
+                                    Shuffle SOAR needs attention
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SOC Tools Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                            <!-- Wazuh Card -->
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="switchToTab('wazuh')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-blue-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">Wazuh</h3>
+                                            <p class="text-sm text-gray-400">SIEM & XDR</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Agents</span>
+                                        <span>247</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Alerts</span>
+                                        <span class="text-alert-orange">1,234</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- SecurityOnion Card -->
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="switchToTab('securityonion')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-green-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">SecurityOnion</h3>
+                                            <p class="text-sm text-gray-400">Network Security</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Sensors</span>
+                                        <span>12</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Traffic</span>
+                                        <span class="text-soc-blue">2.4GB/h</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- OpenCTI Card -->
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="switchToTab('opencti')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-purple-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">OpenCTI</h3>
+                                            <p class="text-sm text-gray-400">Threat Intel</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">IOCs</span>
+                                        <span>15,678</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Reports</span>
+                                        <span class="text-purple-400">234</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- MISP Card -->
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="switchToTab('misp')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-yellow-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">MISP</h3>
+                                            <p class="text-sm text-gray-400">Threat Sharing</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Events</span>
+                                        <span>1,456</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Attributes</span>
+                                        <span class="text-yellow-400">8,923</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Shuffle SOAR Card -->
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="switchToTab('shuffle')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-orange-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">Shuffle SOAR</h3>
+                                            <p class="text-sm text-gray-400">Automation</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-alert-orange rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Workflows</span>
+                                        <span>23</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Executions</span>
+                                        <span class="text-orange-400">156</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- DFIR-IRIS Card -->
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="switchToTab('dfir')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-red-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">DFIR-IRIS</h3>
+                                            <p class="text-sm text-gray-400">Incident Response</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Cases</span>
+                                        <span>12</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Open</span>
+                                        <span class="text-red-400">3</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Velociraptor Card -->
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="switchToTab('velociraptor')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-indigo-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">Velociraptor</h3>
+                                            <p class="text-sm text-gray-400">Endpoint Visibility</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Clients</span>
+                                        <span>189</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Hunts</span>
+                                        <span class="text-indigo-400">7</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Grafana Card -->
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="switchToTab('grafana')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-cyan-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">Grafana</h3>
+                                            <p class="text-sm text-gray-400">Visualization</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                </div>
+                                <div class="space-y-2 text-sm">
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Dashboards</span>
+                                        <span>45</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span class="text-gray-400">Users</span>
+                                        <span class="text-cyan-400">28</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Alerts -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold">Recent Critical Alerts</h3>
+                                <button class="text-sm text-soc-blue hover:text-blue-400">View All</button>
+                            </div>
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-4 p-4 bg-slate-700 rounded-lg">
+                                    <div class="w-3 h-3 bg-threat-red rounded-full mt-2"></div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="font-medium">Suspicious PowerShell Execution</h4>
+                                            <span class="text-xs text-gray-400">2 minutes ago</span>
+                                        </div>
+                                        <p class="text-sm text-gray-400 mt-1">Detected encoded PowerShell command on DESKTOP-ABC123</p>
+                                        <div class="flex items-center space-x-2 mt-2">
+                                            <span class="px-2 py-1 bg-threat-red text-white rounded text-xs">Critical</span>
+                                            <span class="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">Wazuh</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-4 p-4 bg-slate-700 rounded-lg">
+                                    <div class="w-3 h-3 bg-alert-orange rounded-full mt-2"></div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="font-medium">Malware Communication Detected</h4>
+                                            <span class="text-xs text-gray-400">5 minutes ago</span>
+                                        </div>
+                                        <p class="text-sm text-gray-400 mt-1">C2 traffic to known malicious IP 192.168.1.100</p>
+                                        <div class="flex items-center space-x-2 mt-2">
+                                            <span class="px-2 py-1 bg-alert-orange text-white rounded text-xs">High</span>
+                                            <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">SecurityOnion</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-4 p-4 bg-slate-700 rounded-lg">
+                                    <div class="w-3 h-3 bg-threat-red rounded-full mt-2"></div>
+                                    <div class="flex-1">
+                                        <div class="flex items-center justify-between">
+                                            <h4 class="font-medium">Multiple Failed Login Attempts</h4>
+                                            <span class="text-xs text-gray-400">8 minutes ago</span>
+                                        </div>
+                                        <p class="text-sm text-gray-400 mt-1">Brute force attack detected on admin account</p>
+                                        <div class="flex items-center space-x-2 mt-2">
+                                            <span class="px-2 py-1 bg-threat-red text-white rounded text-xs">Critical</span>
+                                            <span class="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">Wazuh</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wazuh Tab -->
+            <div id="wazuh-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-blue-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">Wazuh SIEM & XDR Platform</h2>
+                                    <p class="text-sm text-gray-400">Security Information and Event Management</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm text-safe-green">Online</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Open Wazuh UI
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Agent Management
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Wazuh Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Active Agents</p>
+                                        <p class="text-2xl font-bold text-blue-400">247</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">↑ 3 new</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Alerts Today</p>
+                                        <p class="text-2xl font-bold text-alert-orange">1,234</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">↑ 15%</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Rules Active</p>
+                                        <p class="text-2xl font-bold text-soc-blue">2,456</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Updated 2h ago</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Events/Min</p>
+                                        <p class="text-2xl font-bold text-safe-green">1,847</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">Normal</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Wazuh Alerts -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent Wazuh Alerts</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-threat-red rounded-full"></div>
+                                        <div>
+                                            <div class="font-medium">Rule 5712: Windows Logon Failure</div>
+                                            <div class="text-sm text-gray-400">Agent: DESKTOP-ABC123 | Level: 5</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-gray-400">2 min ago</div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-alert-orange rounded-full"></div>
+                                        <div>
+                                            <div class="font-medium">Rule 31108: SSH Authentication Success</div>
+                                            <div class="text-sm text-gray-400">Agent: SERVER-001 | Level: 3</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-gray-400">5 min ago</div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-threat-red rounded-full"></div>
+                                        <div>
+                                            <div class="font-medium">Rule 40111: Malware Detection</div>
+                                            <div class="text-sm text-gray-400">Agent: WORKSTATION-05 | Level: 12</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-sm text-gray-400">8 min ago</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Agent Status -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Agent Status Overview</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div class="text-center p-4 bg-slate-700 rounded-lg">
+                                    <div class="text-2xl font-bold text-safe-green">234</div>
+                                    <div class="text-sm text-gray-400">Active</div>
+                                </div>
+                                <div class="text-center p-4 bg-slate-700 rounded-lg">
+                                    <div class="text-2xl font-bold text-alert-orange">13</div>
+                                    <div class="text-sm text-gray-400">Disconnected</div>
+                                </div>
+                                <div class="text-center p-4 bg-slate-700 rounded-lg">
+                                    <div class="text-2xl font-bold text-threat-red">0</div>
+                                    <div class="text-sm text-gray-400">Never Connected</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SecurityOnion Tab -->
+            <div id="securityonion-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-green-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">Security Onion</h2>
+                                    <p class="text-sm text-gray-400">Network Security Monitoring Platform</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm text-safe-green">Online</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Open SOC Console
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Sensor Management
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- SecurityOnion Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Active Sensors</p>
+                                        <p class="text-2xl font-bold text-green-400">12</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">All Online</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Traffic/Hour</p>
+                                        <p class="text-2xl font-bold text-soc-blue">2.4GB</p>
+                                    </div>
+                                    <div class="text-xs text-soc-blue">Normal</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Suricata Alerts</p>
+                                        <p class="text-2xl font-bold text-alert-orange">456</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">↑ 12%</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Zeek Logs</p>
+                                        <p class="text-2xl font-bold text-purple-400">89K</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Last hour</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Network Traffic Analysis -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Network Traffic Analysis</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="font-medium mb-3">Top Protocols</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">HTTP/HTTPS</span>
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-24 bg-slate-700 rounded-full h-2">
+                                                    <div class="bg-blue-500 h-2 rounded-full" style="width: 65%"></div>
+                                                </div>
+                                                <span class="text-sm text-gray-400">65%</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">DNS</span>
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-24 bg-slate-700 rounded-full h-2">
+                                                    <div class="bg-green-500 h-2 rounded-full" style="width: 20%"></div>
+                                                </div>
+                                                <span class="text-sm text-gray-400">20%</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">SSH</span>
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-24 bg-slate-700 rounded-full h-2">
+                                                    <div class="bg-purple-500 h-2 rounded-full" style="width: 10%"></div>
+                                                </div>
+                                                <span class="text-sm text-gray-400">10%</span>
+                                            </div>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">Other</span>
+                                            <div class="flex items-center space-x-2">
+                                                <div class="w-24 bg-slate-700 rounded-full h-2">
+                                                    <div class="bg-orange-500 h-2 rounded-full" style="width: 5%"></div>
+                                                </div>
+                                                <span class="text-sm text-gray-400">5%</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-3">Recent Suricata Alerts</h4>
+                                    <div class="space-y-2">
+                                        <div class="p-3 bg-slate-700 rounded-lg">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <div class="text-sm font-medium">ET MALWARE Suspicious DNS Query</div>
+                                                    <div class="text-xs text-gray-400">192.168.1.100 → 8.8.8.8</div>
+                                                </div>
+                                                <span class="text-xs text-threat-red">High</span>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-slate-700 rounded-lg">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <div class="text-sm font-medium">ET SCAN Port Scan Detected</div>
+                                                    <div class="text-xs text-gray-400">10.0.0.50 → 192.168.1.0/24</div>
+                                                </div>
+                                                <span class="text-xs text-alert-orange">Medium</span>
+                                            </div>
+                                        </div>
+                                        <div class="p-3 bg-slate-700 rounded-lg">
+                                            <div class="flex justify-between items-start">
+                                                <div>
+                                                    <div class="text-sm font-medium">ET INFO Session Traversal Utilities for NAT</div>
+                                                    <div class="text-xs text-gray-400">192.168.1.25 → 74.125.224.72</div>
+                                                </div>
+                                                <span class="text-xs text-yellow-400">Low</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sensor Status -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Sensor Status</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-medium">Sensor-01</span>
+                                        <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                    </div>
+                                    <div class="text-sm text-gray-400">Interface: eth0</div>
+                                    <div class="text-sm text-gray-400">Traffic: 245 MB/h</div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-medium">Sensor-02</span>
+                                        <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                    </div>
+                                    <div class="text-sm text-gray-400">Interface: eth1</div>
+                                    <div class="text-sm text-gray-400">Traffic: 189 MB/h</div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between mb-2">
+                                        <span class="font-medium">Sensor-03</span>
+                                        <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                    </div>
+                                    <div class="text-sm text-gray-400">Interface: eth2</div>
+                                    <div class="text-sm text-gray-400">Traffic: 312 MB/h</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- OpenCTI Tab -->
+            <div id="opencti-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-purple-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">OpenCTI</h2>
+                                    <p class="text-sm text-gray-400">Cyber Threat Intelligence Platform</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm text-safe-green">Online</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Open OpenCTI
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Import IOCs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- OpenCTI Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Total IOCs</p>
+                                        <p class="text-2xl font-bold text-purple-400">15,678</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">↑ 234 today</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Threat Reports</p>
+                                        <p class="text-2xl font-bold text-soc-blue">234</p>
+                                    </div>
+                                    <div class="text-xs text-soc-blue">12 new</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Active Campaigns</p>
+                                        <p class="text-2xl font-bold text-alert-orange">45</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">High Activity</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Threat Actors</p>
+                                        <p class="text-2xl font-bold text-threat-red">89</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Tracked</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Threat Intelligence -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent Threat Intelligence</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">APT29 Campaign Update</h4>
+                                            <p class="text-sm text-gray-400 mt-1">New IOCs identified in recent phishing campaign targeting government entities</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-threat-red text-white rounded text-xs">Critical</span>
+                                                <span class="px-2 py-1 bg-purple-900 text-purple-300 rounded text-xs">APT</span>
+                                                <span class="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">Phishing</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-400">2h ago</span>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">Ransomware IOCs - BlackCat</h4>
+                                            <p class="text-sm text-gray-400 mt-1">Updated indicators for BlackCat ransomware family including new C2 domains</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-alert-orange text-white rounded text-xs">High</span>
+                                                <span class="px-2 py-1 bg-red-900 text-red-300 rounded text-xs">Ransomware</span>
+                                                <span class="px-2 py-1 bg-yellow-900 text-yellow-300 rounded text-xs">C2</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-400">4h ago</span>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">Malware Family Analysis - Emotet</h4>
+                                            <p class="text-sm text-gray-400 mt-1">Comprehensive analysis of latest Emotet variant with updated TTPs</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-alert-orange text-white rounded text-xs">High</span>
+                                                <span class="px-2 py-1 bg-orange-900 text-orange-300 rounded text-xs">Malware</span>
+                                                <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">Analysis</span>
+                                            </div>
+                                        </div>
+                                        <span class="text-xs text-gray-400">6h ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- IOC Categories -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">IOC Categories</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                <div class="text-center p-4 bg-slate-700 rounded-lg">
+                                    <div class="text-2xl font-bold text-blue-400">8,234</div>
+                                    <div class="text-sm text-gray-400">IP Addresses</div>
+                                </div>
+                                <div class="text-center p-4 bg-slate-700 rounded-lg">
+                                    <div class="text-2xl font-bold text-green-400">4,567</div>
+                                    <div class="text-sm text-gray-400">Domains</div>
+                                </div>
+                                <div class="text-center p-4 bg-slate-700 rounded-lg">
+                                    <div class="text-2xl font-bold text-purple-400">2,345</div>
+                                    <div class="text-sm text-gray-400">File Hashes</div>
+                                </div>
+                                <div class="text-center p-4 bg-slate-700 rounded-lg">
+                                    <div class="text-2xl font-bold text-orange-400">532</div>
+                                    <div class="text-sm text-gray-400">URLs</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MISP Tab -->
+            <div id="misp-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-yellow-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">MISP</h2>
+                                    <p class="text-sm text-gray-400">Malware Information Sharing Platform</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm text-safe-green">Online</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Open MISP
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Sync Events
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- MISP Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Total Events</p>
+                                        <p class="text-2xl font-bold text-yellow-400">1,456</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">↑ 23 today</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Attributes</p>
+                                        <p class="text-2xl font-bold text-soc-blue">8,923</p>
+                                    </div>
+                                    <div class="text-xs text-soc-blue">156 new</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Organizations</p>
+                                        <p class="text-2xl font-bold text-purple-400">34</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Connected</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Proposals</p>
+                                        <p class="text-2xl font-bold text-alert-orange">12</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">Pending</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent MISP Events -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent MISP Events</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">Event #2456: Phishing Campaign - Banking Sector</h4>
+                                            <p class="text-sm text-gray-400 mt-1">Coordinated phishing attack targeting major banking institutions</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-threat-red text-white rounded text-xs">TLP:RED</span>
+                                                <span class="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">Phishing</span>
+                                                <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">Banking</span>
+                                            </div>
+                                            <div class="text-xs text-gray-400 mt-2">Org: Financial-CERT | 45 attributes</div>
+                                        </div>
+                                        <span class="text-xs text-gray-400">1h ago</span>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">Event #2455: Malware Analysis - TrickBot</h4>
+                                            <p class="text-sm text-gray-400 mt-1">Latest TrickBot variant with new evasion techniques</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-alert-orange text-white rounded text-xs">TLP:AMBER</span>
+                                                <span class="px-2 py-1 bg-red-900 text-red-300 rounded text-xs">Malware</span>
+                                                <span class="px-2 py-1 bg-purple-900 text-purple-300 rounded text-xs">TrickBot</span>
+                                            </div>
+                                            <div class="text-xs text-gray-400 mt-2">Org: MalwareLab | 78 attributes</div>
+                                        </div>
+                                        <span class="text-xs text-gray-400">3h ago</span>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">Event #2454: Infrastructure Compromise</h4>
+                                            <p class="text-sm text-gray-400 mt-1">Compromised infrastructure used for C2 communications</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-safe-green text-white rounded text-xs">TLP:GREEN</span>
+                                                <span class="px-2 py-1 bg-yellow-900 text-yellow-300 rounded text-xs">Infrastructure</span>
+                                                <span class="px-2 py-1 bg-orange-900 text-orange-300 rounded text-xs">C2</span>
+                                            </div>
+                                            <div class="text-xs text-gray-400 mt-2">Org: ThreatIntel-Corp | 23 attributes</div>
+                                        </div>
+                                        <span class="text-xs text-gray-400">5h ago</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sharing Statistics -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Sharing Statistics</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <h4 class="font-medium mb-3">Top Contributing Organizations</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">Financial-CERT</span>
+                                            <span class="text-sm text-yellow-400">234 events</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">MalwareLab</span>
+                                            <span class="text-sm text-yellow-400">189 events</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">ThreatIntel-Corp</span>
+                                            <span class="text-sm text-yellow-400">156 events</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">CyberSec-Team</span>
+                                            <span class="text-sm text-yellow-400">123 events</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <h4 class="font-medium mb-3">Attribute Types</h4>
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">IP Addresses</span>
+                                            <span class="text-sm text-soc-blue">3,456</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">Domains</span>
+                                            <span class="text-sm text-soc-blue">2,234</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">File Hashes</span>
+                                            <span class="text-sm text-soc-blue">1,789</span>
+                                        </div>
+                                        <div class="flex items-center justify-between">
+                                            <span class="text-sm">URLs</span>
+                                            <span class="text-sm text-soc-blue">1,444</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Shuffle SOAR Tab -->
+            <div id="shuffle-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-orange-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">Shuffle SOAR</h2>
+                                    <p class="text-sm text-gray-400">Security Orchestration, Automation & Response</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-alert-orange rounded-full"></div>
+                                <span class="text-sm text-alert-orange">Warning</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Open Shuffle
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Workflow Editor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Warning Banner -->
+                        <div class="bg-orange-900 border border-orange-600 rounded-lg p-4">
+                            <div class="flex items-center space-x-3">
+                                <svg class="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z"></path>
+                                </svg>
+                                <div>
+                                    <h4 class="font-medium text-orange-300">Service Degradation Detected</h4>
+                                    <p class="text-sm text-orange-200">Some workflows are experiencing delays. System resources are being optimized.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Shuffle Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Active Workflows</p>
+                                        <p class="text-2xl font-bold text-orange-400">23</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">Running</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Executions Today</p>
+                                        <p class="text-2xl font-bold text-soc-blue">156</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">↓ 12%</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Success Rate</p>
+                                        <p class="text-2xl font-bold text-safe-green">94%</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">Good</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Failed Executions</p>
+                                        <p class="text-2xl font-bold text-threat-red">9</p>
+                                    </div>
+                                    <div class="text-xs text-threat-red">Needs Review</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Workflows -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Active Workflows</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                            <div>
+                                                <h4 class="font-medium">Phishing Email Response</h4>
+                                                <p class="text-sm text-gray-400">Automated response to phishing alerts from email security</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">23 executions</div>
+                                            <div class="text-xs text-gray-400">Last run: 5 min ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                            <div>
+                                                <h4 class="font-medium">Malware Containment</h4>
+                                                <p class="text-sm text-gray-400">Isolate infected endpoints and gather forensic data</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">12 executions</div>
+                                            <div class="text-xs text-gray-400">Last run: 15 min ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-3 h-3 bg-alert-orange rounded-full"></div>
+                                            <div>
+                                                <h4 class="font-medium">IOC Enrichment</h4>
+                                                <p class="text-sm text-gray-400">Enrich IOCs with threat intelligence from multiple sources</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">45 executions</div>
+                                            <div class="text-xs text-alert-orange">Delayed</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                            <div>
+                                                <h4 class="font-medium">Incident Notification</h4>
+                                                <p class="text-sm text-gray-400">Send notifications to SOC team for critical incidents</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">8 executions</div>
+                                            <div class="text-xs text-gray-400">Last run: 1h ago</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Executions -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent Executions</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                        <div>
+                                            <div class="text-sm font-medium">Phishing Email Response</div>
+                                            <div class="text-xs text-gray-400">Execution ID: exec_789123</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-safe-green">Success</span>
+                                        <div class="text-xs text-gray-400">2 min ago</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-threat-red rounded-full"></div>
+                                        <div>
+                                            <div class="text-sm font-medium">IOC Enrichment</div>
+                                            <div class="text-xs text-gray-400">Execution ID: exec_789122</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-threat-red">Failed</span>
+                                        <div class="text-xs text-gray-400">5 min ago</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                        <div>
+                                            <div class="text-sm font-medium">Malware Containment</div>
+                                            <div class="text-xs text-gray-400">Execution ID: exec_789121</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-safe-green">Success</span>
+                                        <div class="text-xs text-gray-400">8 min ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DFIR-IRIS Tab -->
+            <div id="dfir-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-red-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">DFIR-IRIS</h2>
+                                    <p class="text-sm text-gray-400">Digital Forensics & Incident Response</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm text-safe-green">Online</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Open IRIS
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                New Case
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- DFIR Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Total Cases</p>
+                                        <p class="text-2xl font-bold text-red-400">12</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">↑ 2 new</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Open Cases</p>
+                                        <p class="text-2xl font-bold text-alert-orange">3</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">Active</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Closed Cases</p>
+                                        <p class="text-2xl font-bold text-safe-green">9</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">Resolved</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Evidence Items</p>
+                                        <p class="text-2xl font-bold text-soc-blue">156</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Collected</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Cases -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Active Cases</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">Case #2023-001: Ransomware Incident</h4>
+                                            <p class="text-sm text-gray-400 mt-1">BlackCat ransomware deployment on file server</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-threat-red text-white rounded text-xs">Critical</span>
+                                                <span class="px-2 py-1 bg-red-900 text-red-300 rounded text-xs">Ransomware</span>
+                                                <span class="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">In Progress</span>
+                                            </div>
+                                            <div class="text-xs text-gray-400 mt-2">Assigned: John Doe | Created: 2 days ago</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">23 tasks</div>
+                                            <div class="text-xs text-gray-400">15 completed</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">Case #2023-002: Data Exfiltration</h4>
+                                            <p class="text-sm text-gray-400 mt-1">Suspicious data transfer to external IP addresses</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-alert-orange text-white rounded text-xs">High</span>
+                                                <span class="px-2 py-1 bg-purple-900 text-purple-300 rounded text-xs">Data Breach</span>
+                                                <span class="px-2 py-1 bg-yellow-900 text-yellow-300 rounded text-xs">Analysis</span>
+                                            </div>
+                                            <div class="text-xs text-gray-400 mt-2">Assigned: Jane Smith | Created: 1 day ago</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">18 tasks</div>
+                                            <div class="text-xs text-gray-400">8 completed</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-start justify-between">
+                                        <div>
+                                            <h4 class="font-medium">Case #2023-003: Phishing Campaign</h4>
+                                            <p class="text-sm text-gray-400 mt-1">Targeted phishing emails with credential harvesting</p>
+                                            <div class="flex items-center space-x-2 mt-2">
+                                                <span class="px-2 py-1 bg-yellow-600 text-white rounded text-xs">Medium</span>
+                                                <span class="px-2 py-1 bg-blue-900 text-blue-300 rounded text-xs">Phishing</span>
+                                                <span class="px-2 py-1 bg-green-900 text-green-300 rounded text-xs">Investigation</span>
+                                            </div>
+                                            <div class="text-xs text-gray-400 mt-2">Assigned: Mike Johnson | Created: 6 hours ago</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">12 tasks</div>
+                                            <div class="text-xs text-gray-400">3 completed</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Case Timeline -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent Case Activity</h3>
+                            <div class="space-y-4">
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-3 h-3 bg-blue-500 rounded-full mt-2"></div>
+                                    <div>
+                                        <div class="font-medium">Evidence collected from infected workstation</div>
+                                        <div class="text-sm text-gray-400">Case #2023-001 | Memory dump and disk image acquired</div>
+                                        <div class="text-xs text-gray-400">2 hours ago by John Doe</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-3 h-3 bg-green-500 rounded-full mt-2"></div>
+                                    <div>
+                                        <div class="font-medium">Malware analysis completed</div>
+                                        <div class="text-sm text-gray-400">Case #2023-002 | IOCs extracted and documented</div>
+                                        <div class="text-xs text-gray-400">4 hours ago by Jane Smith</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-3 h-3 bg-yellow-500 rounded-full mt-2"></div>
+                                    <div>
+                                        <div class="font-medium">New case created</div>
+                                        <div class="text-sm text-gray-400">Case #2023-003 | Phishing campaign investigation initiated</div>
+                                        <div class="text-xs text-gray-400">6 hours ago by Mike Johnson</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-start space-x-4">
+                                    <div class="w-3 h-3 bg-purple-500 rounded-full mt-2"></div>
+                                    <div>
+                                        <div class="font-medium">Timeline analysis updated</div>
+                                        <div class="text-sm text-gray-400">Case #2023-001 | Attack timeline reconstructed</div>
+                                        <div class="text-xs text-gray-400">8 hours ago by John Doe</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Velociraptor Tab -->
+            <div id="velociraptor-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-indigo-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-indigo-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">Velociraptor</h2>
+                                    <p class="text-sm text-gray-400">Endpoint Visibility & Digital Forensics</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm text-safe-green">Online</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Open Velociraptor
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                New Hunt
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Velociraptor Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Online Clients</p>
+                                        <p class="text-2xl font-bold text-indigo-400">189</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">↑ 5 new</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Active Hunts</p>
+                                        <p class="text-2xl font-bold text-soc-blue">7</p>
+                                    </div>
+                                    <div class="text-xs text-soc-blue">Running</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Artifacts Collected</p>
+                                        <p class="text-2xl font-bold text-purple-400">2,456</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Today</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Flows Completed</p>
+                                        <p class="text-2xl font-bold text-safe-green">1,234</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">Success</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Active Hunts -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Active Hunts</h3>
+                            <div class="space-y-4">
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                            <div>
+                                                <h4 class="font-medium">Windows.System.PowerShell</h4>
+                                                <p class="text-sm text-gray-400">Hunt for suspicious PowerShell activity</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">156/189 clients</div>
+                                            <div class="text-xs text-gray-400">Running</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                            <div>
+                                                <h4 class="font-medium">Windows.Network.NetstatEnriched</h4>
+                                                <p class="text-sm text-gray-400">Network connection analysis</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">189/189 clients</div>
+                                            <div class="text-xs text-safe-green">Complete</div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center justify-between">
+                                        <div class="flex items-center space-x-4">
+                                            <div class="w-3 h-3 bg-alert-orange rounded-full"></div>
+                                            <div>
+                                                <h4 class="font-medium">Windows.Forensics.Timeline</h4>
+                                                <p class="text-sm text-gray-400">Forensic timeline collection</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-sm font-medium">45/189 clients</div>
+                                            <div class="text-xs text-alert-orange">In Progress</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Collections -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Recent Collections</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                        <div>
+                                            <div class="text-sm font-medium">Windows.System.Services</div>
+                                            <div class="text-xs text-gray-400">Client: DESKTOP-ABC123</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-safe-green">Complete</span>
+                                        <div class="text-xs text-gray-400">5 min ago</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                        <div>
+                                            <div class="text-sm font-medium">Windows.Registry.NTUser</div>
+                                            <div class="text-xs text-gray-400">Client: WORKSTATION-05</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-safe-green">Complete</span>
+                                        <div class="text-xs text-gray-400">12 min ago</div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-2 h-2 bg-alert-orange rounded-full"></div>
+                                        <div>
+                                            <div class="text-sm font-medium">Windows.Memory.Acquisition</div>
+                                            <div class="text-xs text-gray-400">Client: SERVER-001</div>
+                                        </div>
+                                    </div>
+                                    <div class="text-right">
+                                        <span class="text-xs text-alert-orange">Running</span>
+                                        <div class="text-xs text-gray-400">Started 1h ago</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Grafana Tab -->
+            <div id="grafana-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-cyan-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">Grafana</h2>
+                                    <p class="text-sm text-gray-400">Observability & Analytics Platform</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                <span class="text-sm text-safe-green">Online</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Open Grafana
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Dashboard Builder
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Grafana Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Dashboards</p>
+                                        <p class="text-2xl font-bold text-cyan-400">45</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">↑ 3 new</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Data Sources</p>
+                                        <p class="text-2xl font-bold text-soc-blue">12</p>
+                                    </div>
+                                    <div class="text-xs text-soc-blue">Connected</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Active Users</p>
+                                        <p class="text-2xl font-bold text-purple-400">28</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Online now</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Alerts</p>
+                                        <p class="text-2xl font-bold text-alert-orange">7</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">Active</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Popular Dashboards -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Popular Dashboards</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                <div class="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-3 h-3 bg-blue-500 rounded-full"></div>
+                                        <h4 class="font-medium">SOC Overview</h4>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-2">Real-time security metrics and KPIs</p>
+                                    <div class="text-xs text-gray-500">234 views today</div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-3 h-3 bg-green-500 rounded-full"></div>
+                                        <h4 class="font-medium">Network Traffic</h4>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-2">Bandwidth utilization and flow analysis</p>
+                                    <div class="text-xs text-gray-500">189 views today</div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-3 h-3 bg-purple-500 rounded-full"></div>
+                                        <h4 class="font-medium">Threat Intelligence</h4>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-2">IOC trends and threat actor activity</p>
+                                    <div class="text-xs text-gray-500">156 views today</div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-3 h-3 bg-orange-500 rounded-full"></div>
+                                        <h4 class="font-medium">Incident Response</h4>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-2">Case management and response times</p>
+                                    <div class="text-xs text-gray-500">123 views today</div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-3 h-3 bg-red-500 rounded-full"></div>
+                                        <h4 class="font-medium">System Health</h4>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-2">Infrastructure monitoring and alerts</p>
+                                    <div class="text-xs text-gray-500">98 views today</div>
+                                </div>
+                                <div class="p-4 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer transition-colors">
+                                    <div class="flex items-center space-x-3 mb-3">
+                                        <div class="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                                        <h4 class="font-medium">User Activity</h4>
+                                    </div>
+                                    <p class="text-sm text-gray-400 mb-2">Authentication and access patterns</p>
+                                    <div class="text-xs text-gray-500">87 views today</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Data Sources -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Connected Data Sources</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">Elasticsearch (Wazuh)</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Connected</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">InfluxDB (Metrics)</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Connected</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">Prometheus</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Connected</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">PostgreSQL (MISP)</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Connected</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">MySQL (DFIR-IRIS)</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Connected</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">Loki (Logs)</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Connected</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-alert-orange rounded-full"></div>
+                                            <span class="text-sm">OpenCTI API</span>
+                                        </div>
+                                        <span class="text-xs text-alert-orange">Timeout</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">Velociraptor API</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Connected</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Docker Tab -->
+            <div id="docker-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-blue-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">Docker Management</h2>
+                                    <p class="text-sm text-gray-400">Container orchestration and management</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Deploy Stack
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Compose Editor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Docker Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Running Containers</p>
+                                        <p class="text-2xl font-bold text-safe-green">8</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">All healthy</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Total Images</p>
+                                        <p class="text-2xl font-bold text-soc-blue">15</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">2.4GB used</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Networks</p>
+                                        <p class="text-2xl font-bold text-purple-400">3</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">Active</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Volumes</p>
+                                        <p class="text-2xl font-bold text-yellow-400">12</p>
+                                    </div>
+                                    <div class="text-xs text-gray-400">8.7GB used</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Container Status -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">SOC Stack Containers</h3>
+                            <div class="space-y-3">
+                                <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                        <div>
+                                            <div class="font-medium">wazuh-manager</div>
+                                            <div class="text-sm text-gray-400">wazuh/wazuh-manager:4.7.0</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-sm text-gray-400">CPU: 12% | RAM: 1.2GB</div>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Logs</button>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Shell</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                        <div>
+                                            <div class="font-medium">securityonion-so-elasticsearch</div>
+                                            <div class="text-sm text-gray-400">docker.elastic.co/elasticsearch/elasticsearch:7.17.9</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-sm text-gray-400">CPU: 8% | RAM: 2.1GB</div>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Logs</button>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Shell</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                        <div>
+                                            <div class="font-medium">opencti-platform</div>
+                                            <div class="text-sm text-gray-400">opencti/platform:5.12.17</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-sm text-gray-400">CPU: 5% | RAM: 512MB</div>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Logs</button>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Shell</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                        <div>
+                                            <div class="font-medium">misp-web</div>
+                                            <div class="text-sm text-gray-400">coolacid/misp-docker:core-latest</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-sm text-gray-400">CPU: 3% | RAM: 256MB</div>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Logs</button>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Shell</button>
+                                    </div>
+                                </div>
+                                <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                                    <div class="flex items-center space-x-4">
+                                        <div class="w-3 h-3 bg-alert-orange rounded-full"></div>
+                                        <div>
+                                            <div class="font-medium">shuffle-backend</div>
+                                            <div class="text-sm text-gray-400">frikky/shuffle:app_sdk</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-4">
+                                        <div class="text-sm text-gray-400">CPU: 15% | RAM: 1.8GB</div>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Logs</button>
+                                        <button class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Restart</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Monitoring Tab -->
+            <div id="monitoring-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-green-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">System Monitoring</h2>
+                                    <p class="text-sm text-gray-400">Infrastructure health and performance metrics</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Export Metrics
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors">
+                                Configure Alerts
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- System Metrics -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">CPU Usage</p>
+                                        <p class="text-2xl font-bold text-green-400">23%</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">Normal</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Memory Usage</p>
+                                        <p class="text-2xl font-bold text-yellow-400">67%</p>
+                                    </div>
+                                    <div class="text-xs text-yellow-400">Moderate</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Disk Usage</p>
+                                        <p class="text-2xl font-bold text-alert-orange">82%</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">High</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Network I/O</p>
+                                        <p class="text-2xl font-bold text-soc-blue">1.2GB/s</p>
+                                    </div>
+                                    <div class="text-xs text-soc-blue">Active</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Service Health -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Service Health Status</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">Elasticsearch</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Healthy</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">Redis</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Healthy</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">PostgreSQL</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Healthy</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">MySQL</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Healthy</span>
+                                    </div>
+                                </div>
+                                <div class="space-y-3">
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">Nginx</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Healthy</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-alert-orange rounded-full"></div>
+                                            <span class="text-sm">RabbitMQ</span>
+                                        </div>
+                                        <span class="text-xs text-alert-orange">Warning</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">MinIO</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Healthy</span>
+                                    </div>
+                                    <div class="flex items-center justify-between p-3 bg-slate-700 rounded-lg">
+                                        <div class="flex items-center space-x-3">
+                                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                                            <span class="text-sm">OpenSearch</span>
+                                        </div>
+                                        <span class="text-xs text-safe-green">Healthy</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logs-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-purple-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">System Logs</h2>
+                                    <p class="text-sm text-gray-400">Centralized log management and analysis</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
+                                <option>All Services</option>
+                                <option>Wazuh</option>
+                                <option>SecurityOnion</option>
+                                <option>OpenCTI</option>
+                                <option>MISP</option>
+                                <option>Shuffle</option>
+                                <option>DFIR-IRIS</option>
+                                <option>Velociraptor</option>
+                                <option>Grafana</option>
+                            </select>
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors">
+                                Export Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Log Stream -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Live Log Stream</h3>
+                            <div class="bg-black rounded-lg p-4 font-mono text-sm max-h-96 overflow-y-auto scrollbar-thin">
+                                <div class="space-y-1">
+                                    <div class="text-gray-400">
+                                        <span class="text-green-400">[2024-01-15 14:23:45]</span> 
+                                        <span class="text-blue-400">[INFO]</span> 
+                                        <span class="text-yellow-400">[wazuh-manager]</span> 
+                                        Agent connected: DESKTOP-ABC123
+                                    </div>
+                                    <div class="text-gray-400">
+                                        <span class="text-green-400">[2024-01-15 14:23:42]</span> 
+                                        <span class="text-orange-400">[WARN]</span> 
+                                        <span class="text-yellow-400">[shuffle-backend]</span> 
+                                        Workflow execution delayed: high CPU usage
+                                    </div>
+                                    <div class="text-gray-400">
+                                        <span class="text-green-400">[2024-01-15 14:23:38]</span> 
+                                        <span class="text-blue-400">[INFO]</span> 
+                                        <span class="text-yellow-400">[opencti-platform]</span> 
+                                        New IOC imported: malicious-domain.com
+                                    </div>
+                                    <div class="text-gray-400">
+                                        <span class="text-green-400">[2024-01-15 14:23:35]</span> 
+                                        <span class="text-red-400">[ERROR]</span> 
+                                        <span class="text-yellow-400">[misp-web]</span> 
+                                        Database connection timeout
+                                    </div>
+                                    <div class="text-gray-400">
+                                        <span class="text-green-400">[2024-01-15 14:23:32]</span> 
+                                        <span class="text-blue-400">[INFO]</span> 
+                                        <span class="text-yellow-400">[securityonion-so-elasticsearch]</span> 
+                                        Index created: logstash-2024.01.15
+                                    </div>
+                                    <div class="text-gray-400">
+                                        <span class="text-green-400">[2024-01-15 14:23:28]</span> 
+                                        <span class="text-blue-400">[INFO]</span> 
+                                        <span class="text-yellow-400">[dfir-iris]</span> 
+                                        New case created: #2023-004
+                                    </div>
+                                    <div class="text-gray-400">
+                                        <span class="text-green-400">[2024-01-15 14:23:25]</span> 
+                                        <span class="text-blue-400">[INFO]</span> 
+                                        <span class="text-yellow-400">[velociraptor]</span> 
+                                        Hunt completed: Windows.System.PowerShell
+                                    </div>
+                                    <div class="text-gray-400">
+                                        <span class="text-green-400">[2024-01-15 14:23:22]</span> 
+                                        <span class="text-blue-400">[INFO]</span> 
+                                        <span class="text-yellow-400">[grafana]</span> 
+                                        Dashboard updated: SOC Overview
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Log Statistics -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Total Logs Today</p>
+                                        <p class="text-2xl font-bold text-purple-400">2.4M</p>
+                                    </div>
+                                    <div class="text-xs text-safe-green">↑ 12%</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Error Logs</p>
+                                        <p class="text-2xl font-bold text-threat-red">156</p>
+                                    </div>
+                                    <div class="text-xs text-threat-red">Needs attention</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Warning Logs</p>
+                                        <p class="text-2xl font-bold text-alert-orange">1,234</p>
+                                    </div>
+                                    <div class="text-xs text-alert-orange">Monitor</div>
+                                </div>
+                            </div>
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                                <div class="flex items-center justify-between">
+                                    <div>
+                                        <p class="text-sm text-gray-400">Log Rate/Min</p>
+                                        <p class="text-2xl font-bold text-soc-blue">1,667</p>
+                                    </div>
+                                    <div class="text-xs text-soc-blue">Normal</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Tab switching functionality
+        function switchToTab(tabName) {
+            // Hide all content divs
+            const contentDivs = document.querySelectorAll('[id$="-content"]');
+            contentDivs.forEach(div => div.classList.add('hidden'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('[id$="-tab"]');
+            tabs.forEach(tab => {
+                tab.classList.remove('bg-soc-blue', 'text-white');
+                tab.classList.add('text-gray-300');
+            });
+            
+            // Show selected content
+            const selectedContent = document.getElementById(tabName + '-content');
+            if (selectedContent) {
+                selectedContent.classList.remove('hidden');
+            }
+            
+            // Activate selected tab
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) {
+                selectedTab.classList.add('bg-soc-blue', 'text-white');
+                selectedTab.classList.remove('text-gray-300');
+            }
+        }
+
+        // Add click event listeners to all tabs
+        document.addEventListener('DOMContentLoaded', function() {
+            const tabs = [
+                'overview', 'wazuh', 'securityonion', 'opencti', 
+                'misp', 'shuffle', 'dfir', 'velociraptor', 'grafana',
+                'docker', 'monitoring', 'logs'
+            ];
+            
+            tabs.forEach(tabName => {
+                const tab = document.getElementById(tabName + '-tab');
+                if (tab) {
+                    tab.addEventListener('click', () => {
+                        switchToTab(tabName);
+                        // Hide tools dropdown when selecting a tool
+                        const toolsMenu = document.getElementById('tools-menu');
+                        if (toolsMenu) {
+                            toolsMenu.classList.add('hidden');
+                        }
+                    });
+                }
+            });
+
+            // Tools dropdown functionality
+            const toolsDropdown = document.getElementById('tools-dropdown');
+            const toolsMenu = document.getElementById('tools-menu');
+            
+            if (toolsDropdown && toolsMenu) {
+                toolsDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toolsMenu.classList.toggle('hidden');
+                });
+
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function() {
+                    toolsMenu.classList.add('hidden');
+                });
+
+                // Prevent dropdown from closing when clicking inside
+                toolsMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    // Add search logic here if needed
+                    console.log('Searching for:', searchTerm);
+                });
+            }
+        });
+
+        // Auto-refresh data every 30 seconds (placeholder)
+        setInterval(function() {
+            // Update timestamps and counters
+            console.log('Refreshing SOC data...');
+        }, 30000);
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96f27e5a10d99e32',t:'MTc1NTE5NTkxMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>

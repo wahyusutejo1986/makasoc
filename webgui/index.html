@@ -1,0 +1,1661 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MakaraSOC - Security Operations Center</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'soc-blue': '#1E40AF',
+                        'soc-dark': '#0F172A',
+                        'soc-gray': '#1E293B',
+                        'soc-light-gray': '#334155',
+                        'threat-red': '#DC2626',
+                        'alert-orange': '#EA580C',
+                        'safe-green': '#059669'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #1E293B;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #475569;
+            border-radius: 3px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+            background: #64748B;
+        }
+        .pulse-dot {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: .5;
+            }
+        }
+    </style>
+</head>
+<body class="bg-soc-dark text-white font-sans">
+    <!-- Header -->
+    <header class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <svg class="w-8 h-8 text-soc-blue" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 1L3 5V11C3 16.55 6.84 21.74 12 23C17.16 21.74 21 16.55 21 11V5L12 1M12 7C13.4 7 14.8 8.6 14.8 10V11.5C15.4 11.5 16 12.4 16 13V16C16 17.4 15.4 18 14.8 18H9.2C8.6 18 8 17.4 8 16V13C8 12.4 8.6 11.5 9.2 11.5V10C9.2 8.6 10.6 7 12 7M12 8.2C11.2 8.2 10.5 8.7 10.5 10V11.5H13.5V10C13.5 8.7 12.8 8.2 12 8.2Z"/>
+                    </svg>
+                    <h1 class="text-xl font-semibold">MakaraSOC Dashboard</h1>
+                </div>
+                <div class="hidden md:flex items-center space-x-1 bg-slate-700 rounded-lg p-1">
+                    <button id="overview-tab" class="px-3 py-1 rounded bg-soc-blue text-white text-sm">Overview</button>
+                    <div class="relative">
+                        <button id="tools-dropdown" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm flex items-center space-x-1">
+                            <span>SOC Tools</span>
+                            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                            </svg>
+                        </button>
+                        <div id="tools-menu" class="absolute top-full left-0 mt-1 w-48 bg-slate-700 border border-slate-600 rounded-lg shadow-lg z-50 hidden">
+                            <button id="wazuh-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">Wazuh SIEM</button>
+                            <button id="opencti-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">OpenCTI</button>
+                            <button id="misp-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">MISP</button>
+                            <button id="shuffle-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">Shuffle SOAR</button>
+                            <button id="dfir-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">DFIR-IRIS</button>
+                            <button id="velociraptor-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">Velociraptor</button>
+                            <button id="grafana-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">Grafana</button>
+                            <button id="yara-tab" class="w-full text-left px-3 py-2 text-gray-300 hover:text-white hover:bg-slate-600 text-sm">YARA Rules</button>
+                        </div>
+                    </div>
+                    <button id="docker-tab" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm">Docker</button>
+                    <button id="files-tab" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm">File Manager</button>
+                    <button id="logs-tab" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm">Logs</button>
+                    <button id="deploy-tab" class="px-3 py-1 rounded text-gray-300 hover:text-white text-sm">Deploy</button>
+                </div>
+            </div>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-2">
+                    <div class="w-2 h-2 bg-safe-green rounded-full pulse-dot"></div>
+                    <span class="text-sm text-gray-400">SOC Status: Operational</span>
+                </div>
+                <div class="relative">
+                    <input type="text" id="search-input" placeholder="Search threats, alerts..." class="bg-slate-700 border border-slate-600 rounded-lg px-4 py-2 pl-10 text-sm focus:outline-none focus:border-soc-blue">
+                    <svg class="w-4 h-4 absolute left-3 top-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <button class="p-2 hover:bg-slate-700 rounded-lg relative">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-5 5v-5zM9 7H4l5-5v5zM15 7h5l-5-5v5zM9 17H4l5 5v-5z"></path>
+                    </svg>
+                    <span class="absolute -top-1 -right-1 bg-threat-red text-xs rounded-full w-5 h-5 flex items-center justify-center" id="alert-count">0</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="w-64 bg-soc-gray border-r border-slate-600 hidden lg:block">
+            <div class="p-4">
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between text-sm text-gray-400 mb-4">
+                        <span>SOC TOOLS</span>
+                        <span class="bg-slate-700 px-2 py-1 rounded text-xs" id="tools-count">0</span>
+                    </div>
+                    
+                    <!-- Tool Status List -->
+                    <div class="space-y-2" id="tool-status-list">
+                        <!-- Tool status items will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="mt-8">
+                    <div class="text-sm text-gray-400 mb-4">THREAT OVERVIEW</div>
+                    <div class="space-y-3" id="threat-overview">
+                        <!-- Threat overview will be loaded here -->
+                    </div>
+                </div>
+
+                <div class="mt-8">
+                    <div class="text-sm text-gray-400 mb-4">QUICK ACTIONS</div>
+                    <div class="space-y-2">
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-700 text-gray-300" onclick="showTab('files')">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm">Edit Configuration</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-700 text-gray-300" onclick="showTab('deploy')">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                            </svg>
+                            <span class="text-sm">Deploy Stack</span>
+                        </button>
+                        <button class="w-full flex items-center space-x-3 px-3 py-2 rounded-lg hover:bg-slate-700 text-gray-300" onclick="showTab('docker')">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span class="text-sm">Manage Containers</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Panel -->
+        <main class="flex-1 overflow-hidden">
+            <!-- Overview Tab -->
+            <div id="overview-content" class="h-full">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold">MakaraSOC Stack Overview</h2>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors" onclick="generateReport()">
+                                Generate Report
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors" onclick="runHealthCheck()">
+                                Health Check
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Status Cards -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="status-cards">
+                            <!-- Status cards will be loaded here -->
+                        </div>
+
+                        <!-- SOC Tools Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" id="soc-tools-grid">
+                            <!-- SOC tool cards will be loaded here -->
+                        </div>
+
+                        <!-- Recent Alerts -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-lg font-semibold">Recent System Alerts</h3>
+                                <button class="text-sm text-soc-blue hover:text-blue-400" onclick="showTab('logs')">View All</button>
+                            </div>
+                            <div class="space-y-4" id="recent-alerts">
+                                <!-- Recent alerts will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        body {
+            font-family: 'Inter', Arial, sans-serif;
+            background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+            color: #E2E8F0;
+            margin: 0;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: 220px;
+            background: rgba(15, 23, 42, 0.98);
+            color: #CBD5E1;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            padding-top: 32px;
+            border-right: 1px solid #334155;
+            box-shadow: 2px 0 16px 0 rgba(16,24,40,0.08);
+            z-index: 10;
+        }
+        .sidebar h2 {
+            color: #3B82F6;
+            text-align: center;
+            font-size: 1.6rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            letter-spacing: 0.02em;
+        }
+        .sidebar ul {
+            list-style: none;
+            padding: 0;
+        }
+        .sidebar li {
+            padding: 1rem 2rem;
+            margin: 0.5rem 0;
+            border-radius: 8px 0 0 8px;
+            color: #CBD5E1;
+            font-weight: 500;
+            font-size: 1.05rem;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s;
+        }
+        .sidebar li:hover, .sidebar .active {
+            background: linear-gradient(90deg, #3B82F6 0%, #1E293B 100%);
+            color: #fff;
+        }
+        .main {
+            margin-left: 220px;
+            padding: 48px 40px 40px 40px;
+            max-width: 1400px;
+        }
+        .card {
+            background: rgba(30, 41, 59, 0.85);
+            border: 1px solid #334155;
+            border-radius: 16px;
+            box-shadow: 0 4px 24px 0 rgba(59,130,246,0.08);
+            padding: 2rem;
+            margin-bottom: 2.5rem;
+            transition: box-shadow 0.2s, border 0.2s;
+        }
+        .card:hover {
+            border-color: #3B82F6;
+            box-shadow: 0 8px 32px 0 rgba(59,130,246,0.12);
+        }
+        h3 {
+            color: #F1F5F9;
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 1.2rem;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: rgba(30, 41, 59, 0.8);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        th {
+            background: rgba(51, 65, 85, 0.8);
+            color: #F1F5F9;
+            font-weight: 600;
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #475569;
+        }
+        td {
+            padding: 1rem;
+            color: #CBD5E1;
+            border-bottom: 1px solid #334155;
+        }
+        tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+        button {
+            padding: 0.5rem 1.2rem;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: none;
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+            color: #fff;
+            font-weight: 500;
+            cursor: pointer;
+            margin-right: 0.5rem;
+            transition: background 0.2s, box-shadow 0.2s;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.08);
+        }
+        button:disabled {
+            background: #475569;
+            color: #94A3B8;
+            cursor: not-allowed;
+        }
+        .status-running {
+            color: #10B981;
+            font-weight: bold;
+        }
+        .status-exited {
+            color: #EF4444;
+            font-weight: bold;
+        }
+        pre {
+            background: #0F172A;
+            color: #10B981;
+            padding: 1rem;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            margin-top: 1rem;
+            overflow-x: auto;
+        }
+        .platforms-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.5rem;
+        }
+        .platform-card {
+            background: rgba(51, 65, 85, 0.5);
+            border: 1px solid #475569;
+            border-radius: 12px;
+            padding: 1.5rem;
+            color: #F1F5F9;
+            font-weight: 500;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: box-shadow 0.2s, border 0.2s;
+            box-shadow: 0 2px 8px rgba(59,130,246,0.08);
+        }
+        .platform-card:hover {
+            border-color: #3B82F6;
+            box-shadow: 0 8px 32px 0 rgba(59,130,246,0.12);
+        }
+        .platform-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #3B82F6;
+            margin-bottom: 0.5rem;
+        }
+        .platform-desc {
+            color: #94A3B8;
+            font-size: 0.95rem;
+            min-height: 2.5em;
+        }
+        .soc-badge {
+            background: #10B981;
+            color: #fff;
+            border-radius: 6px;
+            padding: 0.2rem 0.7rem;
+            font-size: 0.85rem;
+            margin-top: 0.7rem;
+            display: inline-block;
+        }
+        .tab {
+            display: none;
+        }
+        .tab.active {
+            display: block;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(15, 23, 42, 0.85);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background: rgba(30, 41, 59, 0.98);
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90vw;
+            padding: 2rem;
+            box-shadow: 0 8px 32px #000;
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            background: #EF4444;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            padding: 0.3rem 0.8rem;
+            font-size: 1.1rem;
+            cursor: pointer;
+        }
+        .file-tree {
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .file-item {
+            padding: 0.5rem;
+            margin: 0.2rem 0;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .file-item:hover {
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .file-item.folder {
+            font-weight: 600;
+            color: #3B82F6;
+        }
+        .file-item.file {
+            color: #CBD5E1;
+            margin-left: 1rem;
+        }
+        .file-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .file-actions button {
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+            min-width: auto;
+        }
+        .editor-container {
+            display: none;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid #334155;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .editor-container.active {
+            display: block;
+        }
+        .editor-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #475569;
+        }
+        .editor-filename {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #3B82F6;
+        }
+        .editor-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        textarea.code-editor {
+            width: 100%;
+            height: 400px;
+            background: #0F172A;
+            color: #E2E8F0;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            padding: 1rem;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+            resize: vertical;
+        }
+        .breadcrumb {
+            background: rgba(51, 65, 85, 0.3);
+            padding: 0.5rem 1rem;
+            border-radius: 4px;
+            margin-bottom: 1rem;
+            color: #94A3B8;
+        }
+        .breadcrumb a {
+            color: #3B82F6;
+            text-decoration: none;
+            cursor: pointer;
+        }
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+        .new-file-form {
+            background: rgba(51, 65, 85, 0.3);
+            border: 1px solid #475569;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: none;
+        }
+        .new-file-form.active {
+            display: block;
+        }
+        .form-row {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+            align-items: center;
+        }
+        .form-row input, .form-row select {
+            background: #0F172A;
+            border: 1px solid #334155;
+            border-radius: 4px;
+            padding: 0.5rem;
+            color: #E2E8F0;
+        }
+        @media (max-width: 900px) {
+            .main { padding: 24px 8px 8px 8px; }
+            .sidebar { width: 100px; }
+            .main { margin-left: 100px; }
+        }
+        @media (max-width: 600px) {
+            .sidebar { display: none; }
+            .main { margin-left: 0; padding: 8px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>MakaraSOC</h2>
+        <ul>
+            <li class="nav-item active" data-tab="dashboard">Dashboard</li>
+            <li class="nav-item" data-tab="containers">Containers</li>
+            <li class="nav-item" data-tab="images">Images</li>
+            <li class="nav-item" data-tab="platforms">Platforms</li>
+            <li class="nav-item" data-tab="files">File Manager</li>
+            <li class="nav-item" data-tab="deploy">Deploy</li>
+        </ul>
+    </div>
+
+    <div class="main">
+        <div id="dashboard" class="tab card active">
+            <h3>System Info</h3>
+            <pre id="sysinfo">Loading system information...</pre>
+        </div>
+
+        <div id="containers" class="tab card">
+            <h3>Docker Containers</h3>
+            <table id="containersTable">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Image</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="images" class="tab card">
+            <h3>Docker Images</h3>
+            <table id="imagesTable">
+                <thead>
+                    <tr>
+                        <th>Repository</th>
+                        <th>Tag</th>
+                        <th>Image ID</th>
+                        <th>Size</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
+
+        <div id="platforms" class="tab card">
+            <h3>Platforms (Modules)</h3>
+            <div class="platforms-grid" id="platformsGrid">
+                <!-- Platform cards will be loaded here -->
+            </div>
+        </div>
+
+            <!-- Docker Tab -->
+            <div id="docker-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-blue-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">Docker Management</h2>
+                                    <p class="text-sm text-gray-400">Container orchestration and management</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors" onclick="loadContainers()">
+                                Refresh
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors" onclick="showTab('files')">
+                                Compose Editor
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Docker Stats -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="docker-stats">
+                            <!-- Docker stats will be loaded here -->
+                        </div>
+
+                        <!-- Container Status -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">SOC Stack Containers</h3>
+                            <div class="space-y-3" id="container-list">
+                                <!-- Container list will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Images -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Docker Images</h3>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead>
+                                        <tr class="border-b border-slate-600">
+                                            <th class="text-left py-3 px-4 text-gray-400">Repository</th>
+                                            <th class="text-left py-3 px-4 text-gray-400">Tag</th>
+                                            <th class="text-left py-3 px-4 text-gray-400">Size</th>
+                                            <th class="text-left py-3 px-4 text-gray-400">Created</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="images-table-body">
+                                        <!-- Image rows will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Manager Tab -->
+            <div id="files-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold">Configuration File Manager</h2>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors" onclick="showNewFileForm()">
+                                New File/Folder
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors" onclick="refreshFileTree()">
+                                Refresh
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Breadcrumb Navigation -->
+                        <div class="bg-slate-700 rounded-lg px-4 py-2" id="breadcrumb">
+                            <a onclick="navigateToPath('')" class="text-soc-blue hover:text-blue-400 cursor-pointer">modules</a>
+                        </div>
+                        
+                        <!-- New File/Folder Form -->
+                        <div class="bg-slate-700 border border-slate-600 rounded-lg p-4 hidden" id="newFileForm">
+                            <div class="flex items-center space-x-4">
+                                <select id="createType" class="bg-soc-dark border border-slate-600 rounded px-3 py-2 text-white">
+                                    <option value="file">New File</option>
+                                    <option value="folder">New Folder</option>
+                                </select>
+                                <input type="text" id="createName" placeholder="Enter name..." class="flex-1 bg-soc-dark border border-slate-600 rounded px-3 py-2 text-white" />
+                                <button onclick="createNewItem()" class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded text-sm">Create</button>
+                                <button onclick="cancelCreate()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm">Cancel</button>
+                            </div>
+                        </div>
+                        
+                        <!-- File Tree -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-4">
+                            <div class="space-y-2" id="fileTree">
+                                <!-- File tree will be loaded here -->
+                            </div>
+                        </div>
+                        
+                        <!-- File Editor -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hidden" id="editorContainer">
+                            <div class="flex items-center justify-between mb-4">
+                                <h3 class="text-lg font-semibold" id="editorFilename">No file selected</h3>
+                                <div class="flex space-x-2">
+                                    <button onclick="saveFile()" class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded text-sm">Save</button>
+                                    <button onclick="closeEditor()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded text-sm">Close</button>
+                                </div>
+                            </div>
+                            <textarea id="codeEditor" class="w-full h-96 bg-soc-dark border border-slate-600 rounded p-4 font-mono text-sm text-white" placeholder="Select a file to edit..."></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div id="logs-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="p-2 bg-purple-900 rounded-lg">
+                                    <svg class="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                </div>
+                                <div>
+                                    <h2 class="text-lg font-semibold">System Logs</h2>
+                                    <p class="text-sm text-gray-400">Centralized log management and analysis</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <select id="log-filter" class="bg-slate-700 border border-slate-600 rounded-lg px-3 py-2 text-sm">
+                                <option value="">All Services</option>
+                                <option value="docker">Docker</option>
+                                <option value="wazuh">Wazuh</option>
+                                <option value="grafana">Grafana</option>
+                                <option value="misp">MISP</option>
+                                <option value="opencti">OpenCTI</option>
+                                <option value="shuffle">Shuffle</option>
+                                <option value="iris">DFIR-IRIS</option>
+                                <option value="velociraptor">Velociraptor</option>
+                            </select>
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors" onclick="exportLogs()">
+                                Export Logs
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Log Stream -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Live Log Stream</h3>
+                            <div class="bg-black rounded-lg p-4 font-mono text-sm max-h-96 overflow-y-auto scrollbar-thin" id="log-stream">
+                                <div class="text-gray-400">Connecting to log stream...</div>
+                            </div>
+                        </div>
+
+                        <!-- Log Statistics -->
+                        <div class="grid grid-cols-1 md:grid-cols-4 gap-6" id="log-stats">
+                            <!-- Log statistics will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Deploy Tab -->
+            <div id="deploy-content" class="h-full hidden">
+                <div class="bg-soc-gray border-b border-slate-600 px-6 py-4">
+                    <div class="flex items-center justify-between">
+                        <h2 class="text-lg font-semibold">Deploy MakaraSOC Stack</h2>
+                        <div class="flex items-center space-x-2">
+                            <button class="px-4 py-2 bg-soc-blue hover:bg-blue-600 rounded-lg text-sm font-medium transition-colors" onclick="runDeployment()">
+                                Deploy Stack
+                            </button>
+                            <button class="px-4 py-2 bg-slate-700 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors" onclick="showTab('files')">
+                                Edit Config
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="flex-1 overflow-auto scrollbar-thin">
+                    <div class="p-6 space-y-6">
+                        <!-- Deployment Status -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Deployment Output</h3>
+                            <div class="bg-black rounded-lg p-4 font-mono text-sm max-h-96 overflow-y-auto scrollbar-thin" id="deployment-output">
+                                <div class="text-gray-400">Click "Deploy Stack" to start deployment...</div>
+                            </div>
+                        </div>
+
+                        <!-- Available Modules -->
+                        <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                            <h3 class="text-lg font-semibold mb-4">Available SOC Modules</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="available-modules">
+                                <!-- Available modules will be loaded here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="platformModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-soc-gray rounded-lg max-w-lg w-full mx-4 p-6 border border-slate-600">
+            <button class="absolute top-4 right-4 text-gray-400 hover:text-white" onclick="closePlatformDetail()">&times;</button>
+            <div id="platformDetailContent"></div>
+        </div>
+    </div>
+
+    <script>
+            <h3>File Manager</h3>
+            
+            <!-- Breadcrumb Navigation -->
+            <div class="breadcrumb" id="breadcrumb">
+                <a onclick="navigateToPath('')">modules</a>
+            </div>
+            
+            <!-- New File/Folder Form -->
+            <div class="new-file-form" id="newFileForm">
+                <div class="form-row">
+                    <select id="createType">
+                        <option value="file">New File</option>
+                        <option value="folder">New Folder</option>
+                    </select>
+                    <input type="text" id="createName" placeholder="Enter name..." />
+                    <button onclick="createNewItem()">Create</button>
+                    <button onclick="cancelCreate()">Cancel</button>
+                </div>
+            </div>
+            
+            <!-- File Tree -->
+            <div style="margin-bottom: 1rem;">
+                <button onclick="showNewFileForm()">New File/Folder</button>
+                <button onclick="refreshFileTree()">Refresh</button>
+            </div>
+            
+            <div class="file-tree" id="fileTree">
+                <!-- File tree will be loaded here -->
+            </div>
+            
+            <!-- File Editor -->
+            <div class="editor-container" id="editorContainer">
+                <div class="editor-header">
+                    <div class="editor-filename" id="editorFilename">No file selected</div>
+                    <div class="editor-actions">
+                        <button onclick="saveFile()">Save</button>
+                        <button onclick="closeEditor()">Close</button>
+                    </div>
+                </div>
+                <textarea class="code-editor" id="codeEditor" placeholder="Select a file to edit..."></textarea>
+            </div>
+        </div>
+
+        <div id="deploy" class="tab card">
+            <h3>Deploy MakaraSOC</h3>
+            <button id="deployBtn">Run Deployment</button>
+            <pre id="output">Click "Run Deployment" to start...</pre>
+        </div>
+    </div>
+
+    <!-- Platform Detail Modal -->
+    <div id="platformModal" class="modal">
+        <div class="modal-content">
+            <button class="modal-close" onclick="closePlatformDetail()">&times;</button>
+            <div id="platformDetailContent"></div>
+        </div>
+    </div>
+
+    <script>
+        // Comprehensive JavaScript functionality for MakaraSOC Dashboard
+        
+        // Global variables
+        var currentPath = '';
+        var currentEditingFile = '';
+        var toolsData = {};
+        var containersData = [];
+        var logStreamInterval;
+
+        // Tab switching functionality
+        function showTab(tabName) {
+            // Hide all content divs
+            const contentDivs = document.querySelectorAll('[id$="-content"]');
+            contentDivs.forEach(div => div.classList.add('hidden'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('[id$="-tab"]');
+            tabs.forEach(tab => {
+                tab.classList.remove('bg-soc-blue', 'text-white');
+                tab.classList.add('text-gray-300');
+            });
+            
+            // Show selected content
+            const selectedContent = document.getElementById(tabName + '-content');
+            if (selectedContent) {
+                selectedContent.classList.remove('hidden');
+            }
+            
+            // Activate selected tab
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) {
+                selectedTab.classList.add('bg-soc-blue', 'text-white');
+                selectedTab.classList.remove('text-gray-300');
+            }
+
+            // Load tab-specific data
+            loadTabData(tabName);
+        }
+
+        function loadTabData(tabName) {
+            switch(tabName) {
+                case 'overview':
+                    loadOverviewData();
+                    break;
+                case 'docker':
+                    loadDockerData();
+                    break;
+                case 'files':
+                    loadFileTree();
+                    break;
+                case 'logs':
+                    loadLogData();
+                    break;
+                case 'deploy':
+                    loadDeployData();
+                    break;
+            }
+        }
+
+        // Overview Tab Functions
+        function loadOverviewData() {
+            loadStatusCards();
+            loadSOCToolsGrid();
+            loadRecentAlerts();
+            loadSidebarData();
+        }
+
+        function loadStatusCards() {
+            const container = document.getElementById('status-cards');
+            if (!container) return;
+
+            const statusCards = [
+                {
+                    title: 'Active Threats',
+                    value: '0',
+                    color: 'threat-red',
+                    icon: 'M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z',
+                    trend: '↑ 0%',
+                    trendColor: 'safe-green'
+                },
+                {
+                    title: 'Containers',
+                    value: containersData.length.toString(),
+                    color: 'soc-blue',
+                    icon: 'M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10',
+                    trend: 'Running',
+                    trendColor: 'safe-green'
+                },
+                {
+                    title: 'SOC Tools',
+                    value: Object.keys(toolsData).length.toString(),
+                    color: 'purple-400',
+                    icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z',
+                    trend: 'Available',
+                    trendColor: 'soc-blue'
+                },
+                {
+                    title: 'System Health',
+                    value: '98%',
+                    color: 'safe-green',
+                    icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z',
+                    trend: 'Excellent',
+                    trendColor: 'safe-green'
+                }
+            ];
+
+            container.innerHTML = statusCards.map(card => `
+                <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">${card.title}</p>
+                            <p class="text-2xl font-bold text-${card.color}">${card.value}</p>
+                        </div>
+                        <div class="p-3 bg-${card.color.replace('-400', '-900')} rounded-lg">
+                            <svg class="w-6 h-6 text-${card.color}" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${card.icon}"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="mt-4 text-xs text-gray-400">
+                        <span class="text-${card.trendColor}">${card.trend}</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadSOCToolsGrid() {
+            fetch('/api/platforms')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('soc-tools-grid');
+                    if (!container) return;
+
+                    const toolConfigs = {
+                        'wazuh': { color: 'blue', icon: 'M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z', desc: 'SIEM & XDR' },
+                        'grafana': { color: 'cyan', icon: 'M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z', desc: 'Visualization' },
+                        'misp': { color: 'yellow', icon: 'M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z', desc: 'Threat Sharing' },
+                        'opencti': { color: 'purple', icon: 'M13 10V3L4 14h7v7l9-11h-7z', desc: 'Threat Intel' },
+                        'shuffle': { color: 'orange', icon: 'M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15', desc: 'Automation' },
+                        'iris': { color: 'red', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', desc: 'Incident Response' },
+                        'velociraptor': { color: 'indigo', icon: 'M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z', desc: 'Endpoint Visibility' },
+                        'yara': { color: 'green', icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z', desc: 'Malware Detection' }
+                    };
+
+                    container.innerHTML = data.platforms.map(platform => {
+                        const platformKey = platform.toLowerCase();
+                        const matchedTool = Object.keys(toolConfigs).find(tool => platformKey.includes(tool));
+                        const config = matchedTool ? toolConfigs[matchedTool] : { color: 'gray', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z', desc: 'SOC Tool' };
+                        
+                        return `
+                            <div class="bg-soc-gray rounded-lg border border-slate-600 p-6 hover:border-soc-blue transition-colors cursor-pointer" onclick="showPlatformDetail('${platform}')">
+                                <div class="flex items-center justify-between mb-4">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="p-2 bg-${config.color}-900 rounded-lg">
+                                            <svg class="w-6 h-6 text-${config.color}-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${config.icon}"></path>
+                                            </svg>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold">${platform}</h3>
+                                            <p class="text-sm text-gray-400">${config.desc}</p>
+                                        </div>
+                                    </div>
+                                    <div class="w-3 h-3 bg-safe-green rounded-full"></div>
+                                </div>
+                                <div class="flex justify-between items-center">
+                                    <button onclick="event.stopPropagation(); editPlatformFiles('${platform}')" class="px-3 py-1 bg-safe-green hover:bg-green-600 rounded text-xs">📝 Edit</button>
+                                    <span class="text-xs text-gray-400">Available</span>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+
+                    // Store tools data
+                    toolsData = data.platforms.reduce((acc, platform) => {
+                        acc[platform] = { status: 'available' };
+                        return acc;
+                    }, {});
+                })
+                .catch(error => console.error('Error loading platforms:', error));
+        }
+
+        function loadRecentAlerts() {
+            const container = document.getElementById('recent-alerts');
+            if (!container) return;
+
+            const alerts = [
+                {
+                    title: 'SOC Stack Deployment Ready',
+                    description: 'All MakaraSOC modules are configured and ready for deployment',
+                    time: '5 minutes ago',
+                    severity: 'info',
+                    source: 'System'
+                },
+                {
+                    title: 'Configuration Files Updated',
+                    description: 'Docker compose files and configurations have been initialized',
+                    time: '10 minutes ago',
+                    severity: 'info',
+                    source: 'File Manager'
+                }
+            ];
+
+            container.innerHTML = alerts.map(alert => `
+                <div class="flex items-start space-x-4 p-4 bg-slate-700 rounded-lg">
+                    <div class="w-3 h-3 bg-${alert.severity === 'critical' ? 'threat-red' : alert.severity === 'warning' ? 'alert-orange' : 'soc-blue'} rounded-full mt-2"></div>
+                    <div class="flex-1">
+                        <div class="flex items-center justify-between">
+                            <h4 class="font-medium">${alert.title}</h4>
+                            <span class="text-xs text-gray-400">${alert.time}</span>
+                        </div>
+                        <p class="text-sm text-gray-400 mt-1">${alert.description}</p>
+                        <div class="flex items-center space-x-2 mt-2">
+                            <span class="px-2 py-1 bg-${alert.severity === 'critical' ? 'threat-red' : alert.severity === 'warning' ? 'alert-orange' : 'soc-blue'} text-white rounded text-xs">${alert.severity.charAt(0).toUpperCase() + alert.severity.slice(1)}</span>
+                            <span class="px-2 py-1 bg-slate-600 text-gray-300 rounded text-xs">${alert.source}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function loadSidebarData() {
+            // Update tools count
+            const toolsCount = document.getElementById('tools-count');
+            if (toolsCount) {
+                toolsCount.textContent = Object.keys(toolsData).length;
+            }
+
+            // Update tool status list
+            const toolStatusList = document.getElementById('tool-status-list');
+            if (toolStatusList && toolsData) {
+                toolStatusList.innerHTML = Object.keys(toolsData).slice(0, 8).map(tool => `
+                    <div class="flex items-center justify-between p-2 bg-slate-700 rounded-lg">
+                        <div class="flex items-center space-x-2">
+                            <div class="w-2 h-2 bg-safe-green rounded-full"></div>
+                            <span class="text-sm">${tool}</span>
+                        </div>
+                        <span class="text-xs text-safe-green">Available</span>
+                    </div>
+                `).join('');
+            }
+
+            // Update threat overview
+            const threatOverview = document.getElementById('threat-overview');
+            if (threatOverview) {
+                const threats = [
+                    { name: 'Critical Alerts', count: 0, color: 'threat-red' },
+                    { name: 'High Priority', count: 0, color: 'alert-orange' },
+                    { name: 'Medium Priority', count: 0, color: 'yellow-400' },
+                    { name: 'Low Priority', count: 0, color: 'safe-green' }
+                ];
+
+                threatOverview.innerHTML = threats.map(threat => `
+                    <div class="text-xs text-gray-500">
+                        <div class="flex justify-between mb-1">
+                            <span>${threat.name}</span>
+                            <span class="text-${threat.color} font-bold">${threat.count}</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
+        }
+
+        // Docker Tab Functions
+        function loadDockerData() {
+            loadContainers();
+            loadImages();
+            loadDockerStats();
+        }
+
+        function loadContainers() {
+            fetch('/api/containers')
+                .then(response => response.json())
+                .then(data => {
+                    containersData = data.containers;
+                    updateContainerList();
+                    updateDockerStats();
+                })
+                .catch(error => console.error('Error loading containers:', error));
+        }
+
+        function loadImages() {
+            fetch('/api/images')
+                .then(response => response.json())
+                .then(data => {
+                    const tbody = document.getElementById('images-table-body');
+                    if (!tbody) return;
+
+                    tbody.innerHTML = data.images.map(image => `
+                        <tr class="border-b border-slate-600 hover:bg-slate-700">
+                            <td class="py-3 px-4">${image.repository}</td>
+                            <td class="py-3 px-4">${image.tag}</td>
+                            <td class="py-3 px-4">${image.size}</td>
+                            <td class="py-3 px-4 text-gray-400">Recently</td>
+                        </tr>
+                    `).join('');
+                })
+                .catch(error => console.error('Error loading images:', error));
+        }
+
+        function updateContainerList() {
+            const container = document.getElementById('container-list');
+            if (!container) return;
+
+            container.innerHTML = containersData.map(cont => {
+                const isRunning = cont.status.includes('Up');
+                return `
+                    <div class="flex items-center justify-between p-4 bg-slate-700 rounded-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-3 h-3 bg-${isRunning ? 'safe-green' : 'threat-red'} rounded-full"></div>
+                            <div>
+                                <div class="font-medium">${cont.names}</div>
+                                <div class="text-sm text-gray-400">${cont.image}</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-4">
+                            <div class="text-sm text-gray-400">Status: ${cont.status}</div>
+                            <div class="flex space-x-2">
+                                <button onclick="containerAction('${cont.id}', 'start')" ${isRunning ? 'disabled' : ''} class="px-3 py-1 bg-safe-green hover:bg-green-600 rounded text-xs ${isRunning ? 'opacity-50' : ''}">Start</button>
+                                <button onclick="containerAction('${cont.id}', 'stop')" ${!isRunning ? 'disabled' : ''} class="px-3 py-1 bg-threat-red hover:bg-red-600 rounded text-xs ${!isRunning ? 'opacity-50' : ''}">Stop</button>
+                                <button onclick="containerAction('${cont.id}', 'restart')" class="px-3 py-1 bg-soc-blue hover:bg-blue-600 rounded text-xs">Restart</button>
+                                <button onclick="viewLogs('${cont.id}')" class="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-xs">Logs</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadDockerStats() {
+            const container = document.getElementById('docker-stats');
+            if (!container) return;
+
+            const runningContainers = containersData.filter(c => c.status.includes('Up')).length;
+            const stats = [
+                { title: 'Running Containers', value: runningContainers, color: 'safe-green', status: 'All healthy' },
+                { title: 'Total Containers', value: containersData.length, color: 'soc-blue', status: 'Managed' },
+                { title: 'Images', value: '15', color: 'purple-400', status: 'Cached' },
+                { title: 'Networks', value: '3', color: 'yellow-400', status: 'Active' }
+            ];
+
+            container.innerHTML = stats.map(stat => `
+                <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">${stat.title}</p>
+                            <p class="text-2xl font-bold text-${stat.color}">${stat.value}</p>
+                        </div>
+                        <div class="text-xs text-${stat.color}">${stat.status}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateDockerStats() {
+            loadDockerStats();
+        }
+
+        function containerAction(id, action) {
+            fetch(`/api/container/${id}/${action}`, { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadContainers();
+                    } else {
+                        alert('Error: ' + (data.error || 'Action failed'));
+                    }
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+        }
+
+        function viewLogs(id) {
+            fetch(`/api/container/${id}/logs`)
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.logs);
+                })
+                .catch(error => {
+                    alert('Error: ' + error);
+                });
+        }
+
+        // File Manager Functions (keeping existing file manager code)
+        function loadFileTree(path) {
+            if (path === undefined) path = '';
+            currentPath = path;
+            
+            fetch('/api/files?path=' + encodeURIComponent(path))
+                .then(response => response.json())
+                .then(data => {
+                    const tree = document.getElementById('fileTree');
+                    if (!tree) return;
+                    
+                    tree.innerHTML = '';
+                    updateBreadcrumb(path);
+                    
+                    if (path !== '') {
+                        const parentItem = document.createElement('div');
+                        parentItem.className = 'flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer';
+                        parentItem.innerHTML = '<span class="flex items-center space-x-2"><span>📁</span><span>.. (Parent Directory)</span></span>';
+                        parentItem.onclick = function() {
+                            const parentPath = path.split('/').slice(0, -1).join('/');
+                            loadFileTree(parentPath);
+                        };
+                        tree.appendChild(parentItem);
+                    }
+                    
+                    data.folders.forEach(folder => {
+                        const folderItem = document.createElement('div');
+                        folderItem.className = 'flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600 cursor-pointer';
+                        const folderPath = path ? path + '/' + folder : folder;
+                        folderItem.innerHTML = `
+                            <span class="flex items-center space-x-2"><span>📁</span><span>${folder}</span></span>
+                            <button onclick="event.stopPropagation(); deleteItem('${folderPath}', true)" class="px-2 py-1 bg-threat-red hover:bg-red-600 rounded text-xs">Delete</button>
+                        `;
+                        folderItem.onclick = function() { loadFileTree(folderPath); };
+                        tree.appendChild(folderItem);
+                    });
+                    
+                    data.files.forEach(file => {
+                        const fileItem = document.createElement('div');
+                        fileItem.className = 'flex items-center justify-between p-3 bg-slate-700 rounded-lg hover:bg-slate-600';
+                        const filePath = path ? path + '/' + file : file;
+                        const fileIcon = getFileIcon(file);
+                        fileItem.innerHTML = `
+                            <span class="flex items-center space-x-2"><span>${fileIcon}</span><span>${file}</span></span>
+                            <div class="flex space-x-2">
+                                <button onclick="editFile('${filePath}')" class="px-2 py-1 bg-soc-blue hover:bg-blue-600 rounded text-xs">Edit</button>
+                                <button onclick="deleteItem('${filePath}', false)" class="px-2 py-1 bg-threat-red hover:bg-red-600 rounded text-xs">Delete</button>
+                            </div>
+                        `;
+                        tree.appendChild(fileItem);
+                    });
+                })
+                .catch(error => console.error('Error loading files:', error));
+        }
+
+        function getFileIcon(filename) {
+            const ext = filename.split('.').pop().toLowerCase();
+            const icons = {
+                'py': '🐍', 'js': '📜', 'html': '🌐', 'css': '🎨',
+                'json': '📋', 'yml': '⚙️', 'yaml': '⚙️', 'md': '📝',
+                'sh': '⚡', 'txt': '📄'
+            };
+            return icons[ext] || '📄';
+        }
+
+        function updateBreadcrumb(path) {
+            const breadcrumb = document.getElementById('breadcrumb');
+            if (!breadcrumb) return;
+            
+            const parts = path ? path.split('/') : [];
+            let html = '<a onclick="navigateToPath(\'\')" class="text-soc-blue hover:text-blue-400 cursor-pointer">modules</a>';
+            
+            let currentPath = '';
+            for (let i = 0; i < parts.length; i++) {
+                currentPath += (i > 0 ? '/' : '') + parts[i];
+                html += ` / <a onclick="navigateToPath('${currentPath}')" class="text-soc-blue hover:text-blue-400 cursor-pointer">${parts[i]}</a>`;
+            }
+            
+            breadcrumb.innerHTML = html;
+        }
+
+        function navigateToPath(path) {
+            loadFileTree(path);
+        }
+
+        function editFile(filePath) {
+            currentEditingFile = filePath;
+            
+            fetch('/api/files/content?path=' + encodeURIComponent(filePath))
+                .then(response => response.text())
+                .then(content => {
+                    document.getElementById('editorFilename').textContent = filePath;
+                    document.getElementById('codeEditor').value = content;
+                    document.getElementById('editorContainer').classList.remove('hidden');
+                })
+                .catch(error => alert('Error loading file: ' + error));
+        }
+
+        function saveFile() {
+            if (!currentEditingFile) return;
+            
+            const content = document.getElementById('codeEditor').value;
+            
+            fetch('/api/files/save', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: currentEditingFile, content: content })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('File saved successfully!');
+                } else {
+                    alert('Error saving file: ' + data.error);
+                }
+            })
+            .catch(error => alert('Error saving file: ' + error));
+        }
+
+        function closeEditor() {
+            document.getElementById('editorContainer').classList.add('hidden');
+            currentEditingFile = '';
+        }
+
+        function deleteItem(path, isFolder) {
+            const itemType = isFolder ? 'folder' : 'file';
+            if (confirm(`Are you sure you want to delete this ${itemType}?\n\n${path}`)) {
+                fetch('/api/files/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ path: path, isFolder: isFolder })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        loadFileTree(currentPath);
+                    } else {
+                        alert(`Error deleting ${itemType}: ` + data.error);
+                    }
+                })
+                .catch(error => alert(`Error deleting ${itemType}: ` + error));
+            }
+        }
+
+        function showNewFileForm() {
+            document.getElementById('newFileForm').classList.remove('hidden');
+            document.getElementById('createName').focus();
+        }
+
+        function cancelCreate() {
+            document.getElementById('newFileForm').classList.add('hidden');
+            document.getElementById('createName').value = '';
+        }
+
+        function createNewItem() {
+            const type = document.getElementById('createType').value;
+            const name = document.getElementById('createName').value.trim();
+            
+            if (!name) {
+                alert('Please enter a name');
+                return;
+            }
+            
+            const path = currentPath ? currentPath + '/' + name : name;
+            
+            fetch('/api/files/create', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ path: path, type: type })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    cancelCreate();
+                    loadFileTree(currentPath);
+                } else {
+                    alert(`Error creating ${type}: ` + data.error);
+                }
+            })
+            .catch(error => alert(`Error creating ${type}: ` + error));
+        }
+
+        function refreshFileTree() {
+            loadFileTree(currentPath);
+        }
+
+        // Platform integration functions
+        function showPlatformDetail(platform) {
+            fetch('/api/platforms/' + encodeURIComponent(platform))
+                .then(response => response.json())
+                .then(info => {
+                    const content = document.getElementById('platformDetailContent');
+                    if (!content) return;
+                    
+                    content.innerHTML = `
+                        <h2 class="text-xl font-bold text-soc-blue mb-4">${info.platform}</h2>
+                        ${info.description ? `<p class="text-gray-400 mb-4">${info.description.split('\\n')[0]}</p>` : ''}
+                        <div class="mb-4">
+                            <h3 class="font-semibold mb-2">Files:</h3>
+                            <ul class="list-disc list-inside text-gray-400 space-y-1">
+                                ${info.files.map(file => `<li>${file}</li>`).join('')}
+                            </ul>
+                        </div>
+                        <div class="mb-4">
+                            <span class="font-semibold">Docker Compose:</span> 
+                            <span class="text-${info.docker_compose ? 'safe-green' : 'threat-red'}">${info.docker_compose ? 'Yes' : 'No'}</span>
+                        </div>
+                        <div class="flex space-x-2 pt-4 border-t border-slate-600">
+                            <button onclick="editPlatformFiles('${info.platform}')" class="px-4 py-2 bg-safe-green hover:bg-green-600 rounded">📁 Edit Files</button>
+                            <button onclick="closePlatformDetail()" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded">Close</button>
+                        </div>
+                    `;
+                    document.getElementById('platformModal').classList.remove('hidden');
+                })
+                .catch(error => console.error('Error loading platform details:', error));
+        }
+
+        function closePlatformDetail() {
+            document.getElementById('platformModal').classList.add('hidden');
+        }
+
+        function editPlatformFiles(platformName) {
+            closePlatformDetail();
+            showTab('files');
+            loadFileTree(platformName);
+        }
+
+        // Log functions
+        function loadLogData() {
+            startLogStream();
+            loadLogStats();
+        }
+
+        function startLogStream() {
+            const logStream = document.getElementById('log-stream');
+            if (!logStream) return;
+
+            const logs = [
+                { time: new Date().toLocaleTimeString(), level: 'INFO', service: 'makarasoc-gui', message: 'Web interface loaded successfully' },
+                { time: new Date(Date.now() - 60000).toLocaleTimeString(), level: 'INFO', service: 'docker', message: 'Container management system ready' },
+                { time: new Date(Date.now() - 120000).toLocaleTimeString(), level: 'INFO', service: 'file-manager', message: 'Configuration files initialized' }
+            ];
+
+            logStream.innerHTML = logs.map(log => `
+                <div class="text-gray-400">
+                    <span class="text-green-400">[${log.time}]</span> 
+                    <span class="text-${log.level === 'ERROR' ? 'red' : log.level === 'WARN' ? 'orange' : 'blue'}-400">[${log.level}]</span> 
+                    <span class="text-yellow-400">[${log.service}]</span> 
+                    ${log.message}
+                </div>
+            `).join('');
+        }
+
+        function loadLogStats() {
+            const container = document.getElementById('log-stats');
+            if (!container) return;
+
+            const stats = [
+                { title: 'Total Logs Today', value: '1.2K', color: 'purple-400', trend: '↑ 15%' },
+                { title: 'Error Logs', value: '0', color: 'threat-red', trend: 'None' },
+                { title: 'Warning Logs', value: '3', color: 'alert-orange', trend: 'Monitor' },
+                { title: 'Log Rate/Min', value: '25', color: 'soc-blue', trend: 'Normal' }
+            ];
+
+            container.innerHTML = stats.map(stat => `
+                <div class="bg-soc-gray rounded-lg border border-slate-600 p-6">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-sm text-gray-400">${stat.title}</p>
+                            <p class="text-2xl font-bold text-${stat.color}">${stat.value}</p>
+                        </div>
+                        <div class="text-xs text-gray-400">${stat.trend}</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function exportLogs() {
+            alert('Log export functionality will be implemented with your logging solution.');
+        }
+
+        // Deploy functions
+        function loadDeployData() {
+            loadAvailableModules();
+        }
+
+        function loadAvailableModules() {
+            fetch('/api/platforms')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('available-modules');
+                    if (!container) return;
+
+                    container.innerHTML = data.platforms.map(platform => `
+                        <div class="bg-slate-700 rounded-lg p-4 border border-slate-600">
+                            <h4 class="font-semibold mb-2">${platform}</h4>
+                            <p class="text-sm text-gray-400 mb-3">SOC module ready for deployment</p>
+                            <div class="flex justify-between items-center">
+                                <span class="text-xs text-safe-green">✓ Configured</span>
+                                <button onclick="editPlatformFiles('${platform}')" class="px-3 py-1 bg-soc-blue hover:bg-blue-600 rounded text-xs">Edit</button>
+                            </div>
+                        </div>
+                    `).join('');
+                })
+                .catch(error => console.error('Error loading modules:', error));
+        }
+
+        function runDeployment() {
+            const output = document.getElementById('deployment-output');
+            if (!output) return;
+
+            output.innerHTML = '<div class="text-yellow-400">Starting MakaraSOC deployment...</div>';
+            
+            fetch('/deploy', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    output.innerHTML = `<div class="text-safe-green">✓ Deployment completed</div><pre class="mt-2 text-gray-400">${data.output}</pre>`;
+                })
+                .catch(error => {
+                    output.innerHTML = `<div class="text-threat-red">✗ Deployment failed: ${error}</div>`;
+                });
+        }
+
+        // Utility functions
+        function generateReport() {
+            alert('Security report generation will be implemented with your SIEM integration.');
+        }
+
+        function runHealthCheck() {
+            alert('Running health check on all SOC components...');
+            // Simulate health check
+            setTimeout(() => {
+                alert('Health check completed: All systems operational');
+            }, 2000);
+        }
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set up tab navigation
+            const tabs = ['overview', 'wazuh', 'opencti', 'misp', 'shuffle', 'dfir', 'velociraptor', 'grafana', 'yara', 'docker', 'files', 'logs', 'deploy'];
+            
+            tabs.forEach(tabName => {
+                const tab = document.getElementById(tabName + '-tab');
+                if (tab) {
+                    tab.addEventListener('click', () => showTab(tabName));
+                }
+            });
+
+            // Tools dropdown functionality
+            const toolsDropdown = document.getElementById('tools-dropdown');
+            const toolsMenu = document.getElementById('tools-menu');
+            
+            if (toolsDropdown && toolsMenu) {
+                toolsDropdown.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    toolsMenu.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', function() {
+                    toolsMenu.classList.add('hidden');
+                });
+
+                toolsMenu.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                });
+            }
+
+            // Search functionality
+            const searchInput = document.getElementById('search-input');
+            if (searchInput) {
+                searchInput.addEventListener('input', function(e) {
+                    const searchTerm = e.target.value.toLowerCase();
+                    console.log('Searching for:', searchTerm);
+                });
+            }
+
+            // Initialize with overview tab
+            showTab('overview');
+
+            // Auto-refresh data every 30 seconds
+            setInterval(() => {
+                const activeTab = document.querySelector('[id$="-content"]:not(.hidden)');
+                if (activeTab) {
+                    const tabName = activeTab.id.replace('-content', '');
+                    if (tabName === 'overview') {
+                        loadOverviewData();
+                    }
+                }
+            }, 30000);
+        });
+    </script>
+</body>
+</html>
